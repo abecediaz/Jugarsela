@@ -1,4 +1,6 @@
 import requests
+from datetime import datetime
+import csv
 
 class Equipo:
     def __init__(self, clave, nombre, año, escudo):
@@ -64,13 +66,39 @@ def diccionario_equipos(url: str, endpoints: tuple, headers: dict, temporadas: d
 
         #     response[i][0]
 
+def fecha_actual()->str:
+    #Devuelve un string en el formato YYYYMMDD de la fecha actual
+    
+    fecha = datetime.now()
+    año= str(fecha.year)
+    mes = str(fecha.month)
+    dia = str(fecha.day)
+    if len(mes)!=2:
+        mes = "0"+mes
+    cadena = (año+mes+dia)
+    return cadena
 
-
-
+def registro_transacciones(mail:str,tipo:int,importe:int):
+    #El type in del mail se puede modificar
+    #Toma la fecha de hoy
+    #El tipo de transaccion se determina con los valores 0,1 y 2 de la siguiente manera
+    if tipo == 0:
+        resultado = "deposita"
+    elif tipo==1:
+        resultado = "gana"
+    elif tipo==2:
+        resultado="pierde"
+        
+    fecha = fecha_actual()
+    datos_de_escritura = [[mail,fecha,resultado,importe]]
+    
+    with open("transacciones.csv","a") as transacciones:
+        escritura_csv = csv.writer(transacciones)
+        escritura_csv.writerows(datos_de_escritura)
+        
 def main () -> None:
 
-    dato_api()
-
+    #dato_api()
     return()
 
 main()
