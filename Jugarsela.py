@@ -1,6 +1,31 @@
+def apuesta_main () -> None:
+    print("Menu de apuestas")
+
+def mayor_ganador () -> None:
+    print("El usuario que más veces ganó es... ")
+    
+def mayor_apostador () -> None:
+    print("El usuario que más dinero apostó es... ")
+
+def cargar_dinero () -> None:
+    print("Carga de Dinero")
+
+def grafica_goles () -> None:
+    print("grafica de goles")
+
+def informacion_equipo() -> None:
+    print("info")
+
+def tabla_posiciones() -> None:
+    print("Tabla de posiciones de la Liga Profesional")
+
+def listado_equipos() -> None:
+    print("Listado de equipos de la Liga Profesional correspondiente temporada 2023")
+
+
 def opt_menu() -> None:
-    opt = str(input("Ingrese una opcion: "))
-    while opt not in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]: opt = str(input("Ingrese una opcion valida: "))
+    opt = str(input("Ingrese una opción: "))
+    while opt not in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]: opt = str(input("Ingrese una opción valida: "))
     return opt
 
 def print_menu() -> None:
@@ -32,8 +57,8 @@ def iniciar_sesion() -> None:
     contraseña = str(input("Contraseña: "))
 
 def opt_bienvenida() -> None:
-    opt = str(input("Ingrese una opcion: "))
-    while opt not in ["1", "2", "3"]: opt = str(input("Ingrese una opcion valida: "))
+    opt = str(input("Ingrese una opción: "))
+    while opt not in ["1", "2", "3"]: opt = str(input("Ingrese una opción valida: "))
     return opt
 
 def print_bienvenida() -> None:
@@ -52,10 +77,33 @@ def main () -> None:
             iniciar_sesion()
         elif opt == "2":
             registrarse()
+
         print_menu()
         opcion = opt_menu()
-        while opt != "9":
+
+        while opcion != "9":
+            if opcion == "1":
+                listado_equipos() 
+            elif opcion == "2":
+                tabla_posiciones()
+            elif opcion == "3":
+                informacion_equipo()
+            elif opcion == "4":
+                grafica_goles()
+            elif opcion == "5":
+                cargar_dinero()
+            elif opcion == "2":
+                tabla_posiciones()
+            elif opcion == "6":
+                mayor_apostador()
+            elif opcion == "7":
+                mayor_ganador()
+            elif opcion == "8":
+                apuesta_main()
+
+            print_menu()
             opcion = opt_menu()
 
+        print_bienvenida()
         opt = opt_bienvenida()
 main()
