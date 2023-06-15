@@ -1,3 +1,6 @@
+import csv 
+# from passlib.hash import pbkdf2_sha256
+
 def apuesta_main () -> None:
     print("Menu de apuestas")
 
@@ -68,7 +71,30 @@ def print_bienvenida() -> None:
     print(f"3. Salir")
     print(f"-"*20)
 
+def transacciones_csv_to_diccionario(transacciones_diccionario: dict) -> None:
+    with open("transacciones.csv", newline='', encoding="UTF-8") as transacciones_csv:
+        csv_reader = csv.reader(transacciones_csv, delimiter=',')
+        next(csv_reader) 
+        for fila in csv_reader:
+            transacciones_diccionario[fila[0]] = [(fila[1]),(fila[2]),(fila[3])]
+
+def usuarios_csv_to_diccionario(usuarios_diccionario: dict) -> None:
+    with open("usuarios.csv", newline='', encoding="UTF-8") as usarios_csv:
+        csv_reader = csv.reader(usarios_csv, delimiter=',')
+        next(csv_reader) 
+        for fila in csv_reader:
+            usuarios_diccionario[fila[0]] = [(fila[1]),(fila[2]),(fila[3]),(fila[4]),(fila[5])]
+
+
+    print(usuarios_diccionario[fila[0]][2])
+
 def main () -> None:
+    usuarios_diccionario = {} # email(id):[usuario, contraseña, cantidad_apostada, fecha_última_apuesta, dinero_disponible]
+    transacciones_diccionario = {} # email(id):[fecha, resultado, importe]
+
+    usuarios_csv_to_diccionario(usuarios_diccionario)
+    transacciones_csv_to_diccionario(transacciones_diccionario)
+
     print(f"Bienvenido")
     print_bienvenida()
     opt = opt_bienvenida()
