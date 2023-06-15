@@ -18,6 +18,13 @@ class Estadio:
         self.superficie = superficie
         self.foto = foto
 
+class Fixture:
+    def __init__(self, fecha, local, visitante, ganador):
+        self.fecha = fecha
+        self.local = local
+        self.visitante = visitante
+        self.ganador = ganador
+
 def dato_api() -> dict:
     """
     PRE: Ningún parámetro. .
@@ -31,9 +38,9 @@ def dato_api() -> dict:
         "temporadas": "leagues?id=128", #HECHO
         "equipos": "teams?league=128&season=", #HECHO
         "fixtures": "fixtures?league=128&season=" + year, #HECHO
-        "estadisticas": "teams/statistics?league=128&season=" + year + "&team=",
-        "predicciones": "predictions?fixture=",
-        "planteles": "fixtures/lineups?fixture=",
+        "estadisticas": "teams/statistics?league=128&season=" + year + "&team=", 
+        "predicciones": "predictions?fixture=", #HECHO
+        "planteles": "players?league=128&season=" + year + "&team=", #EN_PROCESO
         "posiciones": "standings?league=128&season=" #HECHO
     }
 
@@ -42,20 +49,20 @@ def dato_api() -> dict:
         'x-rapidapi-key': "e31e12366af164902d3401b1d8e03718"
         }
 
-    posiciones_temporadas: dict = diccionario_temporadas(url, endpoints, headers)
+    temporadas: dict = diccionario_temporadas(url, endpoints, headers)
 
-    equipos: dict = diccionario_equipos(url, endpoints, headers, posiciones_temporadas)
+    equipos: dict = diccionario_equipos(url, endpoints, headers, temporadas)
 
-    fixtures: dict = diccionario_fixtures (url, endpoints, headers, posiciones_temporadas)
+    fixtures: dict = diccionario_fixtures (url, endpoints, headers, temporadas)
 
 def diccionario_temporadas(url: str, endpoints: dict, headers: dict) -> dict:
     """
     PRE: Un parámetro str. Dos parámetros dict. Crea el diccionario troncal del programa, el cual
          almacena las posiciones de cada temporada.
-    POST: Un valor de retorno dict. Devuelve el diccionario "posiciones_temporadas" ordenado por fechas de forma
+    POST: Un valor de retorno dict. Devuelve el diccionario "temporadas" ordenado por fechas de forma
           ascendente.
     """
-    posiciones_temporadas: dict = {}
+    temporadas: dict = {}
 
     respuesta_temporadas: dict = requests.request("GET", url + endpoints["temporadas"], headers=headers)
 
@@ -63,18 +70,18 @@ def diccionario_temporadas(url: str, endpoints: dict, headers: dict) -> dict:
     seasons: dict = (response[0]).get("seasons")
 
     for season in seasons:
-        if (season.get("year") not in posiciones_temporadas):
-            posiciones_temporadas[season.get("year")] = []
+        if (season.get("year") not in temporadas):
+            temporadas[season.get("year")] = []
     
-    posiciones_temporadas: dict = diccionario_posiciones(url, endpoints, headers, posiciones_temporadas)
+    temporadas: dict = informacion_posiciones(url, endpoints, headers, temporadas)
 
-def diccionario_posiciones(url: str, endpoints: dict, headers: dict, posiciones_temporadas: dict) -> dict:
+def informacion_posiciones(url: str, endpoints: dict, headers: dict, temporadas: dict) -> dict:
     """
     PRE: Un parámetro str. Tres parámetros dict. La función extrae, por temporada, las posiciones
-         de los equipos en la liga y los almacena en orden en el diccionario "posiciones".
-    POST: Un valor de retorno dict. Devuelve el diccionario "posiciones" con la información.
+         de los equipos en la liga y los almacena en orden en el diccionario "temporadas".
+    POST: Un valor de retorno dict. Devuelve el diccionario "temporadas" con la información nueva agregada.
     """
-    for key in posiciones_temporadas:
+    for key in temporadas:
         respuesta_posiciones: dict = requests.request("GET", url + endpoints["posiciones"] + str(key), headers=headers)
 
         response: list = (respuesta_posiciones.json()).get("response")
@@ -82,11 +89,11 @@ def diccionario_posiciones(url: str, endpoints: dict, headers: dict, posiciones_
 
         for i in range (len(league["standings"][1])):
 
-            posiciones_temporadas[key].append(str(league["standings"][1][i]["team"]["name"]))
+            temporadas[key].append(str(league["standings"][1][i]["team"]["name"]))
     
-    return(posiciones_temporadas)
+    return(temporadas)
 
-def diccionario_equipos(url: str, endpoints: dict, headers: dict, posiciones_temporadas: dict) -> dict:
+def diccionario_equipos(url: str, endpoints: dict, headers: dict, temporadas: dict) -> dict:
     """
     PRE: Un parámetro str. Tres parámetros dict. La función extrae, por temporada, los datos
          necesarios de los equipos participantes y los almacena por nombre en el diccionario "equipos".
@@ -94,7 +101,7 @@ def diccionario_equipos(url: str, endpoints: dict, headers: dict, posiciones_tem
     """
     equipos: dict = {}
 
-    for key in posiciones_temporadas:
+    for key in temporadas:
 
         respuesta_temporadas: dict = requests.request("GET", url + endpoints["equipos"] + key, headers=headers)
 
@@ -142,12 +149,67 @@ def diccionario_fixtures(url: str, endpoints: dict, headers: dict) -> dict:
         fecha: tuple = reordenar_fecha(response[i]["fixture"]["date"])
         local: str = response[i]["teams"]["home"]["name"]
         visitante: str = response[i]["teams"]["away"]["name"]
+        ganador: str = informacion_predicciones(url, code, endpoints, headers)
+
+        fixture = Fixture(fecha, local, visitante, ganador)
 
         if (code not in fixtures):
-            fixtures[code] = (fecha, (local, "L"), (visitante, "V"))
+            fixtures[code] = fixture
 
     return(fixtures)
 
+def informacion_predicciones(url: str, code: str, endpoints: dict, headers: dict) -> str:
+    """
+    PRE: Dos parámetros str. Dos parámetros dict.
+    POST: Un valor de retorno dict.
+    """
+
+    respuesta_predicciones: dict = requests.request("GET", url + endpoints["predicciones"] + code, headers=headers)
+    response: list = (respuesta_predicciones.json()).get("response")
+
+    ganador: str = response[0]["predictions"]["winner"]["name"]
+
+    return(ganador)
+
+def diccionario_planteles(url: str, endpoints: dict, headers: dict, equipos: dict) -> dict:
+    """
+    PRE:
+    POST:
+    """
+    for equipo in equipos:
+        respuesta_predicciones: dict = requests.request("GET", url + endpoints["planteles"] + (equipos[equipo]).code, headers=headers)
+        
+        response: list = (respuesta_predicciones.json()).get("response")
+
+        for i in range (len(response)):
+
+            jugador: str = response[i]["player"]["name"]
+            nombre_completo: str = response[i]["player"]["firstname"] + response[i]["player"]["lastname"] 
+            posicion: str = traducir_posicion(response[i]["statistics"][0]["games"]["position"])
+
+            if (len(equipos[equipo]) == 1):
+                equipos[equipo].append([(jugador, nombre_completo, posicion)])
+            else:
+                equipos[equipo].append((jugador, nombre_completo, posicion))
+
+    return(equipos)
+
+def traducir_posicion(posicion: str) -> str:
+   """
+   PRE: Un parámetros str. Recibe el nombre en inglés de una posición de juego en el futbol.
+   POST: Un valor de retorno str. Devuelve la cadena traducida al español según corresponda.
+   """
+
+    if (posicion == "Goalkeeper"):
+        posicion: str = "Arquero"
+
+    elif (posicion == "Defender"):
+        posicion: str = "Defensor"
+
+    elif (posicion == "Midfielder"):
+        posicion: str = "Mediocampista"
+
+    return(posicion)
 
 
 
@@ -169,10 +231,9 @@ def reordenar_fecha(fecha: str) -> tuple:
 def fecha_actual()->str:
     #Devuelve un string en el formato YYYYMMDD de la fecha actual
     
-    fecha = datetime.now()
-    año= str(fecha.year)
-    mes = str(fecha.month)
-    dia = str(fecha.day)
+    año = str((datetime.now()).year)
+    mes = str((datetime.now()).month)
+    dia = str((datetime.now()).day)
     if len(mes)!=2:
         mes = "0"+mes
     cadena = (año+mes+dia)
