@@ -195,7 +195,35 @@ def registro_transacciones(mail:str,tipo:int,importe:int):
     with open("transacciones.csv","a") as transacciones:
         escritura_csv = csv.writer(transacciones)
         escritura_csv.writerows(datos_de_escritura)
-        
+
+def mostrar_fixture(equipo,fiture:dict):
+    pass
+def validar_apuesta_lv(lov:str):
+    pass
+def validar_apuesta_dinero(cantidad:int):
+    pass
+def resultados_apuesta(apuesta):
+    pass
+def definir_apuesta(): 
+    #ARGUMENTOS A DEFINIR, FUNCION INCOMPLETA
+    local_o_visitante = input("Ingrese a que equipo apostara (L/V)")
+    validar_apuesta_lv(local_o_visitante)
+    cantidad_apostada = int(input("Ingrese la cantidad de dinero a apostar"))
+    validar_apuesta_dinero(cantidad_apostada)
+    
+    valor_apuesta = [local_o_visitante,cantidad_apostada]
+    return valor_apuesta
+    
+def  menu_apuesta():
+    #ARGUMENTOS A DEFINIR, FUNCION INCOMPLETA
+    equipo = input("Ingrese el equipo")
+    partido = mostrar_fixture(equipo)
+    local,visitante,fecha,prediccion = partido
+    apuesta = definir_apuesta()
+    tipo,dinero_a_modificar = resultados_apuesta
+    registro_transacciones("PLACEHOLDER",tipo,dinero_a_modificar)
+    #MODIFICAR LA CANTIDAD DE DINERO EN EL DOCUMENTO DE USUARIOS
+    pass
 def main () -> None:
 
     return()
