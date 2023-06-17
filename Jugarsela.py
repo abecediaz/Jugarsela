@@ -13,19 +13,19 @@ def dato_api() -> list:
     year: str = str(datetime.now().year)
 
     endpoints: dict = {
-        "temporadas": "leagues?id=128",
-        "equipos": "teams?league=128&season=",
-        "fixtures": "fixtures?league=128&season=" + year,
-        "estadisticas": "teams/statistics?league=128&season=" + year + "&team=",
-        "predicciones": "predictions?fixture=",
-        "planteles": "players?league=128&season=" + year + "&team=",
-        "posiciones": "standings?league=128&season="
+    "temporadas": "leagues?id=128",
+    "equipos": "teams?league=128&season=",
+    "fixtures": "fixtures?league=128&season=" + year,
+    "estadisticas": "teams/statistics?league=128&season=" + year + "&team=",
+    "predicciones": "predictions?fixture=",
+    "planteles": "players?league=128&season=" + year + "&team=",
+    "posiciones": "standings?league=128&season="
     }
 
     headers: dict = {
-        'x-rapidapi-host': "v3.football.api-sports.io",
-        'x-rapidapi-key': "d6b40bb947b90f57f825bd5d2508b001"
-        }
+    'x-rapidapi-host': "v3.football.api-sports.io",
+    'x-rapidapi-key': "d6b40bb947b90f57f825bd5d2508b001"
+    }
 
     temporadas: dict = diccionario_temporadas(url, year, endpoints, headers)
     equipos: dict = diccionario_equipos(url, year, endpoints, headers, temporadas)
@@ -151,11 +151,11 @@ def diccionario_fixtures(url: str, year: str, endpoints: dict, headers: dict) ->
 
             if (code not in fixtures):
                 fixtures[code] = {
-                                "fecha": fecha,
-                                "local": local,
-                                "visitante": visitante,
-                                "prediccion": prediccion
-                                }
+                "fecha": fecha,
+                "local": local,
+                "visitante": visitante,
+                "prediccion": prediccion
+                }
 
     return(fixtures)
 
@@ -195,20 +195,21 @@ def informacion_posiciones(url: str, year: str, endpoints: dict, headers: dict, 
         league: dict = (response[0]).get("league")
 
         if (int(key) < 2020):
-            temporadas: dict = sistema_antiguo(key, league, temporadas)
+            temporadas: dict = posiciones_sistema_antiguo(key, league, temporadas)
 
         elif (int(key) == 2020):
-            temporadas: dict = sistema_2020(key, league, temporadas)
+            temporadas: dict = posiciones_sistema_2020(key, league, temporadas)
 
         else:
-            temporadas: dict = sistema_nuevo(key, league, temporadas)
+            temporadas: dict = posiciones_sistema_nuevo(key, league, temporadas)
 
     return(temporadas)
 
-def sistema_antiguo(key: str, league: dict, temporadas: dict) -> dict:
+def posiciones_sistema_antiguo(key: str, league: dict, temporadas: dict) -> dict:
     """
-    PRE: 
-    POST:
+    PRE: Un parámetro str. Dos parámetros dict. Si la temporada es previa al 2019 (inclusive) la función
+         ordena la información segun como haya funcionado el sistema de posiciones de ese año.
+    POST: Un valor de retorno dict. Devuelve el diccionario "temporadas" con la información detallada.
     """
     for i in range (len(league["standings"][0])):
 
@@ -219,10 +220,11 @@ def sistema_antiguo(key: str, league: dict, temporadas: dict) -> dict:
 
     return(temporadas)
 
-def sistema_2020(key: str, league: dict, temporadas: dict) -> dict:
+def posiciones_sistema_2020(key: str, league: dict, temporadas: dict) -> dict:
     """
-    PRE: 
-    POST:
+    PRE: Un parámetro str. Dos parámetros dict. Si la temporada es 2020 la función ordena la
+         información segun como haya funcionado el sistema de posiciones de ese año.
+    POST: Un valor de retorno dict. Devuelve el diccionario "temporadas" con la información detallada.
     """
     for i in range (len(league["standings"])):
 
@@ -243,10 +245,11 @@ def sistema_2020(key: str, league: dict, temporadas: dict) -> dict:
     
     return(temporadas)
 
-def sistema_nuevo(key: str, league: dict, temporadas: dict) -> dict:
+def posiciones_sistema_nuevo(key: str, league: dict, temporadas: dict) -> dict:
     """
-    PRE: 
-    POST:
+    PRE: Un parámetro str. Dos parámetros dict. Si la temporada es a partir del 2021 (inclusive) la
+         función ordena la información segun como haya funcionado el sistema de posiciones de ese año.
+    POST: Un valor de retorno dict. Devuelve el diccionario "temporadas" con la información detallada.
     """
     for i in range (len(league["standings"][0])):
 
@@ -286,13 +289,13 @@ def informacion_estadisticas(url: str, year: str, code: str, endpoints: dict, he
 
     response: list = ((requests.request("GET", url + endpoints["estadisticas"] + code, headers=headers)).json()).get("response")
 
-    for intervalo in response["goals"]["for"]["minute"]:
+    for intervalo in response[0]["goals"]["for"]["minute"]:
         
-        if (response["goals"]["for"]["minute"][intervalo]["total"] == None):
+        if (response[0]["goals"]["for"]["minute"][intervalo]["total"] == None):
             goles: int = 0
 
         else:
-            goles: int = response["goals"]["for"]["minute"][intervalo]["total"]
+            goles: int = response[0]["goals"]["for"]["minute"][intervalo]["total"]
         
         estadistica[intervalo] = goles
 
@@ -310,7 +313,7 @@ def traducir_posicion(posicion: str) -> str:
         posicion: str = "Defensor"
 
    elif (posicion == "Midfielder"):
-        osicion: str = "Mediocampista"
+        posicion: str = "Mediocampista"
 
    return(posicion)
 
