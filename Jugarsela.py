@@ -52,6 +52,16 @@ def registrarse(usuarios_diccionario:dict) -> None:
     usuario = str(input("Nombre de Usuario: "))
     contraseña = str(input("Contraseña: "))
 
+    for i in usuarios_diccionario:
+        if email == i:
+            print(f"-"*20)
+            print("Usuario ya existente, elija una opcion para continuar")
+            return
+    
+    print(f"-"*20)
+    print("Usuario creado exitosamente, inicie seion para continuar")
+    usuarios_diccionario[email] = [usuario, contraseña] #agregar los vlaores que faltan
+
 def iniciar_sesion(usuarios_diccionario:dict) -> None:
     print(f"-"*20)
     print(f"Inicio de Sesion")
@@ -63,20 +73,11 @@ def iniciar_sesion(usuarios_diccionario:dict) -> None:
             print(f"-"*20)
             print(f"Bienvenido {usuarios_diccionario[i][0]}")
             return email
-        
-    print("Combinacion de usuario y contraseña incorecta, elija una opcion para continuar")
-    print_bienvenida()
-    opt = opt_bienvenida()
 
-    if opt == "1": 
-        email = iniciar_sesion(usuarios_diccionario)
-    elif opt == "2":
-        registrarse(usuarios_diccionario)
-        email = ""
-        return email
-    elif opt == "3":
-        email = ""
-        return email
+    print(f"-"*20)
+    print("Combinacion de usuario y contraseña incorecta, elija una opcion para continuar")
+    email = ""
+    return email
 
 def opt_bienvenida() -> None:
     opt = str(input("Ingrese una opción: "))

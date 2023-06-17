@@ -1,0 +1,19 @@
+mail,fecha de transacción,resultado,importe
+email1@example.com,20230714,Gana,736
+email3@example.com,20220821,Pierde,-245
+email6@example.com,20220105,Deposita,502
+email9@example.com,20230317,Gana,8
+email2@example.com,20220228,Pierde,-312
+email4@example.com,20230511,Gana,671
+email7@example.com,20211203,Deposita,189
+email10@example.com,20230419,Pierde,-489
+email3@example.com,20230215,Gana,825
+email6@example.com,20220707,Pierde,-521
+email8@example.com,20220914,Deposita,287
+email9@example.com,20221030,Gana,943
+email1@example.com,20220105,Pierde,-162
+email4@example.com,20230522,Gana,648
+email7@example.com,20230201,Pierde,-745
+email2@example.com,20230612,Deposita,512
+email3@example.com,20230817,Gana,976
+email6@example.com,20230407,Pierde,-314
