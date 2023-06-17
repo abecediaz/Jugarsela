@@ -33,7 +33,7 @@ def opt_menu() -> None:
 
 def print_menu() -> None:
     print(f"-"*20)
-    print(f"Bienvenido a la interfaz, seleccione lo que desea hacer")
+    print(f"Esta es la interfaz, seleccione lo que desea hacer")
     print(f"1. Ver el listado de equipos")
     print(f"2. Ver la tabla de posiciones de la Liga profesional")
     print(f"3. Ver informacion de un equipo")
@@ -45,19 +45,38 @@ def print_menu() -> None:
     print(f"9. Cerrar sesion")
     print(f"-"*20)
 
-def registrarse() -> None:
+def registrarse(usuarios_diccionario:dict) -> None:
     print(f"-"*20)
     print(f"Proporcione sus datos para crear una nueva cuenta")
     email = str(input("Email: ")) 
     usuario = str(input("Nombre de Usuario: "))
     contraseña = str(input("Contraseña: "))
 
-def iniciar_sesion() -> None:
-    #validacion dentro con el csv!!!
+def iniciar_sesion(usuarios_diccionario:dict) -> None:
     print(f"-"*20)
     print(f"Inicio de Sesion")
     email = str(input("Email: ")) 
     contraseña = str(input("Contraseña: "))
+
+    for i in usuarios_diccionario:
+        if email == i and contraseña == usuarios_diccionario[i][1]:
+            print(f"-"*20)
+            print(f"Bienvenido {usuarios_diccionario[i][0]}")
+            return email
+        
+    print("Combinacion de usuario y contraseña incorecta, elija una opcion para continuar")
+    print_bienvenida()
+    opt = opt_bienvenida()
+
+    if opt == "1": 
+        email = iniciar_sesion(usuarios_diccionario)
+    elif opt == "2":
+        registrarse(usuarios_diccionario)
+        email = ""
+        return email
+    elif opt == "3":
+        email = ""
+        return email
 
 def opt_bienvenida() -> None:
     opt = str(input("Ingrese una opción: "))
@@ -91,6 +110,7 @@ def usuarios_csv_to_diccionario(usuarios_diccionario: dict) -> None:
 def main () -> None:
     usuarios_diccionario = {} # email(id):[usuario, contraseña, cantidad_apostada, fecha_última_apuesta, dinero_disponible]
     transacciones_diccionario = {} # email(id):[fecha, resultado, importe]
+    email = ""
 
     usuarios_csv_to_diccionario(usuarios_diccionario)
     transacciones_csv_to_diccionario(transacciones_diccionario)
@@ -100,35 +120,37 @@ def main () -> None:
     opt = opt_bienvenida()
     while opt != "3":
         if opt == "1":
-            iniciar_sesion()
+            email = iniciar_sesion(usuarios_diccionario)
         elif opt == "2":
-            registrarse()
+            registrarse(usuarios_diccionario)
 
-        print_menu()
-        opcion = opt_menu()
-
-        while opcion != "9":
-            if opcion == "1":
-                listado_equipos() 
-            elif opcion == "2":
-                tabla_posiciones()
-            elif opcion == "3":
-                informacion_equipo()
-            elif opcion == "4":
-                grafica_goles()
-            elif opcion == "5":
-                cargar_dinero()
-            elif opcion == "2":
-                tabla_posiciones()
-            elif opcion == "6":
-                mayor_apostador()
-            elif opcion == "7":
-                mayor_ganador()
-            elif opcion == "8":
-                apuesta_main()
-
+        while email != "":
             print_menu()
             opcion = opt_menu()
+
+            while opcion != "9":
+                if opcion == "1":
+                    listado_equipos() 
+                elif opcion == "2":
+                    tabla_posiciones()
+                elif opcion == "3":
+                    informacion_equipo()
+                elif opcion == "4":
+                    grafica_goles()
+                elif opcion == "5":
+                    cargar_dinero()
+                elif opcion == "2":
+                    tabla_posiciones()
+                elif opcion == "6":
+                    mayor_apostador()
+                elif opcion == "7":
+                    mayor_ganador()
+                elif opcion == "8":
+                    apuesta_main()
+
+                print_menu()
+                opcion = opt_menu()
+            email = ""
 
         print_bienvenida()
         opt = opt_bienvenida()
