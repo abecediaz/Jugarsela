@@ -1,4 +1,4 @@
-mail,fecha de transacción,resultado,importe
+email,fecha,resultado,importe
 email1@example.com,20230714,Gana,736
 email3@example.com,20220821,Pierde,-245
 email6@example.com,20220105,Deposita,502
@@ -17,3 +17,5 @@ email7@example.com,20230201,Pierde,-745
 email2@example.com,20230612,Deposita,512
 email3@example.com,20230817,Gana,976
 email6@example.com,20230407,Pierde,-314
+Gorge,20230614,Deposita,1200
+
