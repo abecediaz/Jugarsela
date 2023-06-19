@@ -86,7 +86,7 @@ def diccionario_equipos(url: str, year: str, endpoints: dict, headers: dict, tem
             direccion: str = response[i]["venue"]["address"]
             ciudad: str = response[i]["venue"]["city"]
             capacidad: str = str(response[i]["venue"]["capacity"])
-            superficie: str = response[i]["venue"]["surface"]
+            superficie: str = traducir_dato(response[i]["venue"]["surface"].lower())
             foto: str = response[i]["venue"]["image"]
 
             if (int(key) != int(year)):
@@ -171,7 +171,7 @@ def informacion_planteles(url: str, year: str, code: str, endpoints: dict, heade
     for i in range (len(response)):
 
         nombre_completo: str = response[i]["player"]["firstname"] + " " + response[i]["player"]["lastname"] 
-        posicion: str = traducir_posicion(response[i]["statistics"][0]["games"]["position"])
+        posicion: str = traducir_dato((response[i]["statistics"][0]["games"]["position"]).lower())
 
         if ((response[i]["statistics"][0]["games"]["captain"]) == True):
             dato_completo: str = f"{nombre_completo} ({posicion}), CAPITÁN"
@@ -301,21 +301,24 @@ def informacion_estadisticas(url: str, year: str, code: str, endpoints: dict, he
 
     return(estadistica)
 
-def traducir_posicion(posicion: str) -> str:
-   """
-   PRE: Un parámetros str. Recibe el nombre en inglés de una posición de juego en el futbol.
-   POST: Un valor de retorno str. Devuelve la cadena traducida al español según corresponda.
-   """
-   if (posicion == "Goalkeeper"):
-        posicion: str = "Arquero"
+def traducir_dato(dato: str) -> str:
+    """
+    PRE: Un parámetros str. Recibe una palabra en inglés.
+    POST: Un valor de retorno str. Devuelve la cadena traducida al español según corresponda.
+    """
+    if (dato == "grass"):
+        traduccion: str = "Pasto sintético"
 
-   elif (posicion == "Defender"):
-        posicion: str = "Defensor"
+    elif (dato == "goalkeeper"):
+        traduccion: str = "Arquero"
 
-   elif (posicion == "Midfielder"):
-        posicion: str = "Mediocampista"
+    elif (dato == "defender"):
+        traduccion: str = "Defensor"
 
-   return(posicion)
+    elif (dato == "midfielder"):
+        traduccion: str = "Mediocampista"
+
+    return(dato)
 
 def reordenar_fecha(fecha: str) -> tuple:
     """
@@ -355,7 +358,6 @@ def registro_transacciones(mail:str,tipo:int,importe:int,lista_transacciones:lis
     datos_de_escritura = [[mail,fecha,resultado,importe]]
     lista_transacciones.append(datos_de_escritura)
     
-
 def definir_partidos(equipo:str,fixture:dict)->list:
     partidos = []
     local = 1
@@ -364,6 +366,7 @@ def definir_partidos(equipo:str,fixture:dict)->list:
         if equipo == partido[local] or equipo == partido[visitante]:
             partidos.append(partido)
     return partidos
+
 def encuadrado(objeto:str)->str:
     objeto = objeto + " " * (35 - (len(objeto)))
     return objeto
@@ -393,8 +396,6 @@ def mostrar_fixture(equipo:str,fixture:dict):
         return lista_partidos[partido_elegido-1] # El numero 1 es el 0 de la lista.
     
     return lista_partidos # REESTRUCTURAR DE FORMA MAS INGENIOSA
-
-             
 
 def validar_apuesta_lv()-> str:
     lov = input("Ingrese a que equipo apostara (L/V)")
@@ -439,8 +440,7 @@ def apuesta_dinero(dinero_disponible:int)->int:
             apuesta_check = True
             
     return cantidad_apostada
-        
-            
+                 
 def resultados_apuesta(apuesta):
     #COMPLETAR MAÑANA XD
     pass
@@ -474,8 +474,6 @@ def validar_equipos(equipo:str,lista_equipos:dict):
             printear_equipos_disponibles(lista_equipos)
             equipo = input("Equipo invalido, ingrese un equipo que se encuentre en la lista")
     
-    
-
 def menu_apuesta(mail:str,dict_usuarios:dict,dict_transacciones:dict,dict_equipos:dict):
     #FUNCION INCOMPLETA
     
@@ -499,7 +497,6 @@ def menu_apuesta(mail:str,dict_usuarios:dict,dict_transacciones:dict,dict_equipo
         registro_transacciones(mail,tipo,dinero_a_modificar,dict_transacciones)
         #AGREGAR: MODIFICAR LA CANTIDAD DE DINERO EN EL DOCUMENTO DE USUARIOS
         pass
-
 
 # from passlib.hash import pbkdf2_sha256
 
@@ -526,7 +523,6 @@ def tabla_posiciones() -> None:
 
 def listado_equipos() -> None:
     print("Listado de equipos de la Liga Profesional correspondiente temporada 2023")
-
 
 def opt_menu() -> None:
     opt = str(input("Ingrese una opción: "))
