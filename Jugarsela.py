@@ -394,31 +394,75 @@ def menu_apuesta():
 def apuesta_main () -> None:
     print("Menu de apuestas")
 
-def mayor_ganador () -> None:
-    print("El usuario que más veces ganó es... ")
-    
-def mayor_apostador () -> None:
-    print("El usuario que más dinero apostó es... ")
+def mayor_ganador (transacciones_diccionario:dict) -> None:
+    cantidad_apuestas = {} # usuario: cantidad
+    mayor_ganador = ""
+    mayor_veces_ganado = 0
 
-def cargar_dinero () -> None:
+
+    for i in transacciones_diccionario:
+        if transacciones_diccionario[3] == "Gana":
+            if i not in cantidad_apuestas:
+                cantidad_apuestas[i] = 1
+            else: cantidad_apuestas[i] += 1
+
+    for i in cantidad_apuestas:
+        if cantidad_apuestas[i] >= mayor_veces_ganado:
+            mayor_veces_ganado = cantidad_apuestas[i]
+            mayor_ganador = i
+
+    print(f"El usuario que más veces ganó es {i}")
+    
+def mayor_apostador (usuarios_diccionario:dict) -> None:
+    mayor_apostador = ""
+    mayor_cantidad_apostada = float(0)
+
+    for i in usuarios_diccionario:
+        if usuarios_diccionario[i][2] >= mayor_cantidad_apostada:
+            mayor_cantidad_apostada = usuarios_diccionario[i][2]
+            mayor_apostador = usuarios_diccionario[i][0]
+
+    print(f"El usuario que más dinero apostó es {mayor_apostador} ")
+
+def cargar_dinero (email:str, usuarios_diccionario:dict, transacciones_diccionario:dict) -> None:
     print("Carga de Dinero")
+    dinero = float(input("Ingrese la cantidad de dinero que quiere ingresar en su cuenta: "))
+    while dinero <= 0: dinero = float(input("Error, ingrese la cantidad de dinero que quiere ingresar en su cuenta: "))
+    
+    usuarios_diccionario[email][4] += dinero
+    # transacciones_diccionario[email] = ""
+    print(f"Dinero disponible: {usuarios_diccionario[email][4]}")
 
 def grafica_goles () -> None:
     print("grafica de goles")
 
-def informacion_equipo() -> None:
-    print("info")
+def informacion_equipo(informacion_api:list) -> None:
+    print("Informacion de equipos")
+    equipo = input("Ingrese el nombre de un equipo para ver su informacion: ")
+    while equipo not in informacion_api[1]:
+        equipo = input("Equipo no encontrado, ingrese el nombre de otro equipo para ver su informacion: ")
+
+    print("Informacion del estadio")
+
+    print("Escudo")
 
 def tabla_posiciones() -> None:
     print("Tabla de posiciones de la Liga Profesional")
 
-def listado_equipos() -> None:
+def listado_equipos(informacion_api:list) -> None:
     print("Listado de equipos de la Liga Profesional correspondiente temporada 2023")
+    for i in informacion_api[1]:
+        print(informacion_api[1][i])
+    equipo = input("Ingrese el nombre de un equipo para ver su plantel: ")
+    while equipo not in informacion_api[1]:
+        equipo = input("Equipo no encontrado, ingrese el nombre de otro equipo para ver su plantel: ")
 
+    print("plantel")
 
 def opt_menu() -> None:
     opt = str(input("Ingrese una opción: "))
     while opt not in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]: opt = str(input("Ingrese una opción valida: "))
+    print(f"-"*20)
     return opt
 
 def print_menu() -> None:
@@ -451,7 +495,7 @@ def registrarse(usuarios_diccionario:dict) -> None:
 
     print(f"-"*20)
     print("Usuario creado exitosamente, inicie seion para continuar")
-    usuarios_diccionario[email] = [usuario, contraseña] #agregar los vlaores que faltan
+    usuarios_diccionario[email] = [usuario, contraseña, 0, 00000000, 0] #agregar los vlaores que faltan
 
 def iniciar_sesion(usuarios_diccionario:dict) -> None:
     print(f"-"*20)
@@ -494,14 +538,13 @@ def usuarios_csv_to_diccionario(usuarios_diccionario: dict) -> None:
         csv_reader = csv.reader(usarios_csv, delimiter=',')
         next(csv_reader) 
         for fila in csv_reader:
-            usuarios_diccionario[fila[0]] = [(fila[1]),(fila[2]),(fila[3]),(fila[4]),(fila[5])]
-
-
-    print(usuarios_diccionario[fila[0]][2])
+            usuarios_diccionario[fila[0]] = [(fila[1]),(fila[2]), float(fila[3]),int(fila[4]), float(fila[5])]
 
 def main () -> None:
     usuarios_diccionario = {} # email(id):[usuario, contraseña, cantidad_apostada, fecha_última_apuesta, dinero_disponible]
     transacciones_diccionario = {} # email(id):[fecha, resultado, importe]
+    informacion_api =  ["temporadas", "equipos", "fixtures"] #dato_api() 
+
     email = ""
 
     usuarios_csv_to_diccionario(usuarios_diccionario)
@@ -522,21 +565,19 @@ def main () -> None:
 
             while opcion != "9":
                 if opcion == "1":
-                    listado_equipos() 
+                    listado_equipos(informacion_api) 
                 elif opcion == "2":
                     tabla_posiciones()
                 elif opcion == "3":
-                    informacion_equipo()
+                    informacion_equipo(informacion_api)
                 elif opcion == "4":
                     grafica_goles()
                 elif opcion == "5":
-                    cargar_dinero()
-                elif opcion == "2":
-                    tabla_posiciones()
+                    cargar_dinero(email, usuarios_diccionario, transacciones_diccionario)
                 elif opcion == "6":
-                    mayor_apostador()
+                    mayor_apostador(usuarios_diccionario)
                 elif opcion == "7":
-                    mayor_ganador()
+                    mayor_ganador(transacciones_diccionario)
                 elif opcion == "8":
                     apuesta_main()
 
