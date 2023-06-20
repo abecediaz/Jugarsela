@@ -1,49 +1,56 @@
 import requests
-from datetime import datetime
+import time
 import csv
+import os
+import matplotlib.pyplot as plt
+from datetime import datetime
+from passlib.hash import pbkdf2_sha256
 
-def dato_api() -> list:
+def diccionario_api(API: dict) -> list:
     """
-    PRE: Ningún parámetro. Recopila toda la información que se va a emplear (o no) a lo largo
-         del programa.
+    PRE: Un parámetro dict. Recopila toda la información que se va a emplear (o no) a lo largo
+         del programa en una lista de diccionarios.
     POST: Un valor de retorno list. Devuelve una lista con los tres diccionarios creados.
     """
-    url: str = "https://v3.football.api-sports.io/"
+    imprimir_carga(0)
 
-    year: str = str(datetime.now().year)
-
-    endpoints: dict = {
-    "temporadas": "leagues?id=128",
-    "equipos": "teams?league=128&season=",
-    "fixtures": "fixtures?league=128&season=" + year,
-    "estadisticas": "teams/statistics?league=128&season=" + year + "&team=",
-    "predicciones": "predictions?fixture=",
-    "planteles": "players?league=128&season=" + year + "&team=",
-    "posiciones": "standings?league=128&season="
-    }
-
-    headers: dict = {
-    'x-rapidapi-host': "v3.football.api-sports.io",
-    'x-rapidapi-key': "d6b40bb947b90f57f825bd5d2508b001"
-    }
-
-    temporadas: dict = diccionario_temporadas(url, year, endpoints, headers)
-    equipos: dict = diccionario_equipos(url, year, endpoints, headers, temporadas)
-    fixtures: dict = diccionario_fixtures (url, year, endpoints, headers)
+    temporadas: dict = diccionario_temporadas(API)
+    equipos: dict = diccionario_equipos(API, temporadas)
+    fixtures: dict = diccionario_fixtures (API)
 
     informacion_api: list = [temporadas, equipos, fixtures]
 
+    imprimir_carga(4)
+    time.sleep(0.5)
+
     return(informacion_api)
 
-def diccionario_temporadas(url: str, year: str, endpoints: dict, headers: dict) -> dict:
+def imprimir_carga(tiempo: int) -> None:
     """
-    PRE: Dos parámetros str. Dos parámetros dict. Crea el diccionario "temporadas" el cual
-         almacena los años de la liga como clave, y los resultados de las posiciones como sus valores.
+    PRE: Un parámetro int. Recibe el valor de un número entero.
+    POST: Ningún valor de retorno. Imprime la cadena que se encuentra en la posición del entero ingresado.
+    """
+    CARGA: list = [
+    "0% ▯ ▯ ▯ ▯ ▯ ▯ ▯ ▯ ▯ ▯ 100%", "33% ▮ ▮ ▮ ▯ ▯ ▯ ▯ ▯ ▯ ▯ 100%",
+    "66% ▮ ▮ ▮ ▮ ▮ ▮ ▯ ▯ ▯ ▯ 100%", "99% ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▯ 100%",
+    "100% ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ 100%", "Cargando..."
+    ]
+
+    os.system("cls")
+    print(CARGA[5])
+    print(CARGA[tiempo])
+
+    return(None)
+
+def diccionario_temporadas(API: dict) -> dict:
+    """
+    PRE: Un parámetro dict. Crea el diccionario "temporadas" el cual almacena los años de la liga
+         como clave, y los resultados de las posiciones como sus valores.
     POST: Un valor de retorno dict. Devuelve el diccionario "temporadas" ordenado por años de forma
           ascendente.
     """
     temporadas: dict = {}
-    response: list = ((requests.request("GET", url + endpoints["temporadas"], headers=headers)).json()).get("response")
+    response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["temporadas"], headers=API["HEADERS"])).json()).get("response")
     seasons: dict = (response[0]).get("seasons")
 
     for season in seasons:
@@ -60,21 +67,24 @@ def diccionario_temporadas(url: str, year: str, endpoints: dict, headers: dict) 
                 "Segunda Fase": []
                 }
 
-    temporadas: dict = informacion_posiciones(url, year, endpoints, headers, temporadas)
+    temporadas: dict = informacion_posiciones(API, temporadas)
+    imprimir_carga(1)
+
     return(temporadas)
 
-def diccionario_equipos(url: str, year: str, endpoints: dict, headers: dict, temporadas: dict) -> dict:
+def diccionario_equipos(API: dict, temporadas: dict) -> dict:
     """
-    PRE: Dos parámetros str. Tres parámetros dict. La función extrae, de cada temporada, los datos
-         necesarios de los equipos que alguna vez participaron en la liga y almacena los nombres como
-         claves, y los datos dentro de otro diccionario.
+    PRE: Dos parámetros dict. La función extrae, de cada temporada, los datos necesarios de los
+         equipos que alguna vez participaron en la liga y almacena los nombres como claves, y
+         los datos dentro de otro diccionario.
     POST: Un valor de retorno dict. Devuelve el diccionario "equipos" con la información detallada.
     """
     equipos: dict = {}
 
     for key in temporadas:
-
-        response: list = ((requests.request("GET", url + endpoints["equipos"] + str(key), headers=headers)).json()).get("response")
+        
+        time.sleep(6.0)
+        response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["equipos"] + str(key), headers=API["HEADERS"])).json()).get("response")
 
         for i in range (len(response)):
 
@@ -86,7 +96,7 @@ def diccionario_equipos(url: str, year: str, endpoints: dict, headers: dict, tem
             direccion: str = response[i]["venue"]["address"]
             ciudad: str = response[i]["venue"]["city"]
             capacidad: str = str(response[i]["venue"]["capacity"])
-            superficie: str = response[i]["venue"]["surface"]
+            superficie: str = traducir_dato(response[i]["venue"]["surface"].lower())
             foto: str = response[i]["venue"]["image"]
 
             if (int(key) != int(year)):
@@ -107,9 +117,9 @@ def diccionario_equipos(url: str, year: str, endpoints: dict, headers: dict, tem
 					}
 
             else:
-            
-                plantel: list = informacion_planteles(url, year, code, endpoints, headers)
-                estadistica: dict = informacion_estadisticas(url, year, code, endpoints, headers)
+                
+                plantel: list = informacion_planteles(API, code)
+                estadistica: dict = informacion_estadisticas(API, code)
 
                 if (nombre_equipo not in equipos):
                     equipos[nombre_equipo] = {
@@ -125,18 +135,22 @@ def diccionario_equipos(url: str, year: str, endpoints: dict, headers: dict, tem
 					"plantel": plantel,
 					"estadisticas": estadistica
 					}
+    
+    imprimir_carga(2)
 
     return(equipos)
 
-def diccionario_fixtures(url: str, year: str, endpoints: dict, headers: dict) -> dict:
+def diccionario_fixtures(API: dict) -> dict:
     """
-    PRE: Dos parámetros str. Dos parámetros dict. La función extrae los datos necesarios
-         del fixture 2023 y los almacena por id en el diccionario "fixtures".
+    PRE: Un parámetro dict. La función extrae los datos necesarios del fixture 2023 y los almacena
+         por id en el diccionario "fixtures".
     POST: Un valor de retorno dict. Devuelve el diccionario "fixtures" con la información detallada.
     """
+    time.sleep(6.0)
+
     fixtures: dict = {}
     hoy: str = fecha_actual()
-    response: list = ((requests.request("GET", url + endpoints["fixtures"], headers=headers)).json()).get("response")
+    response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["fixtures"], headers=API["HEADERS"])).json()).get("response")
 
     for i in range (len(response)):
 
@@ -147,31 +161,33 @@ def diccionario_fixtures(url: str, year: str, endpoints: dict, headers: dict) ->
             code: str = str(response[i]["fixture"]["id"])
             local: str = response[i]["teams"]["home"]["name"]
             visitante: str = response[i]["teams"]["away"]["name"]
-            prediccion: str = informacion_predicciones(url, year, code, endpoints, headers)
 
             if (code not in fixtures):
                 fixtures[code] = {
                 "fecha": fecha,
                 "local": local,
                 "visitante": visitante,
-                "prediccion": prediccion
                 }
+
+    imprimir_carga(3)
 
     return(fixtures)
 
-def informacion_planteles(url: str, year: str, code: str, endpoints: dict, headers: dict) -> list:
+def informacion_planteles(API: dict, code: str) -> list:
     """
-    PRE: Tres parámetros str. Dos parámetros dict. Por cada equipo participante de la temporada 2023,
-         la función extrae los datos disponibles del plantel y los almacena en una lista.
+    PRE: Un parámetro dict. Un parámetro str. Por cada equipo participante de la temporada 2023, la
+         función extrae los datos disponibles del plantel y los almacena en una lista.
     POST: Un valor de retorno list. Devuelve la lista "plantel" con la información detallada.
     """
+    time.sleep(6.0)
+
     plantel: list = []
-    response: list = ((requests.request("GET", url + endpoints["planteles"] + code, headers=headers)).json()).get("response")
+    response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["planteles"] + code, headers=API["HEADERS"])).json()).get("response")
 
     for i in range (len(response)):
 
         nombre_completo: str = response[i]["player"]["firstname"] + " " + response[i]["player"]["lastname"] 
-        posicion: str = traducir_posicion(response[i]["statistics"][0]["games"]["position"])
+        posicion: str = traducir_dato((response[i]["statistics"][0]["games"]["position"]).lower())
 
         if ((response[i]["statistics"][0]["games"]["captain"]) == True):
             dato_completo: str = f"{nombre_completo} ({posicion}), CAPITÁN"
@@ -183,15 +199,17 @@ def informacion_planteles(url: str, year: str, code: str, endpoints: dict, heade
 
     return(plantel)
 
-def informacion_posiciones(url: str, year: str, endpoints: dict, headers: dict, temporadas: dict) -> dict:
+def informacion_posiciones(API: dict, temporadas: dict) -> dict:
     """
-    PRE: Dos parámetros str. Tres parámetros dict. La función extrae, por temporada, las posiciones
+    PRE: Dos parámetros dict. La función extrae, por temporada, las posiciones
          y los puntos de los equipos en la liga y los almacena en el diccionario "temporadas" por orden.
     POST: Un valor de retorno dict. Devuelve el diccionario "temporadas" con la información nueva agregada.
     """
     for key in temporadas:
 
-        response: list = ((requests.request("GET", url + endpoints["posiciones"] + str(key), headers=headers)).json()).get("response")
+        time.sleep(6.0)
+
+        response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["posiciones"] + str(key), headers=API["HEADERS"])).json()).get("response")
         league: dict = (response[0]).get("league")
 
         if (int(key) < 2020):
@@ -267,27 +285,28 @@ def posiciones_sistema_nuevo(key: str, league: dict, temporadas: dict) -> dict:
     
     return(temporadas)
 
-def informacion_predicciones(url: str, year: str, code: str, endpoints: dict, headers: dict) -> str:
+def informacion_predicciones(API: dict, code: str) -> str:
     """
-    PRE: Tres parámetros str. Dos parámetros dict. Por cada partido aún no jugado, la función extrae el
-         nombre del equipo que la API cree será el ganador.
+    PRE: Un parámetro dict. Un parámetro str. Por cada partido aún no jugado, la función extrae
+         el nombre del equipo que la API cree será el ganador.
     POST: Un valor de retorno str. Devuelve la predicción.
     """
-    response: list = ((requests.request("GET", url + endpoints["predicciones"] + code, headers=headers)).json()).get("response")
+    response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["predicciones"] + code, headers=API["HEADERS"])).json()).get("response")
 
     prediccion: str = response[0]["predictions"]["winner"]["name"]
 
     return(prediccion)
 
-def informacion_estadisticas(url: str, year: str, code: str, endpoints: dict, headers: dict) -> dict:
+def informacion_estadisticas(API: dict, code: str) -> dict:
     """
-    PRE: Tres parámetros str. Dos parámetros dict. La función extrae las estadísticas de goles por minuto
-         de los equipos de la temporada 2023.
+    PRE: Un parámetro dict. Un parámetro str. La función extrae las estadísticas de goles por minuto de
+         los equipos de la temporada 2023.
     POST: Un valor de retorno dict. Devuelve el diccionario "estadicticas" con la información detallada.
     """
-    estadistica: dict = {}
+    time.sleep(6.0)
 
-    response: list = ((requests.request("GET", url + endpoints["estadisticas"] + code, headers=headers)).json()).get("response")
+    estadistica: dict = {}
+    response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["estadisticas"] + code, headers=API["HEADERS"])).json()).get("response")
 
     for intervalo in response[0]["goals"]["for"]["minute"]:
         
@@ -301,21 +320,24 @@ def informacion_estadisticas(url: str, year: str, code: str, endpoints: dict, he
 
     return(estadistica)
 
-def traducir_posicion(posicion: str) -> str:
-   """
-   PRE: Un parámetros str. Recibe el nombre en inglés de una posición de juego en el futbol.
-   POST: Un valor de retorno str. Devuelve la cadena traducida al español según corresponda.
-   """
-   if (posicion == "Goalkeeper"):
-        posicion: str = "Arquero"
+def traducir_dato(dato: str) -> str:
+    """
+    PRE: Un parámetros str. Recibe una palabra en inglés.
+    POST: Un valor de retorno str. Devuelve la cadena traducida al español según corresponda.
+    """
+    if (dato == "grass"):
+        traduccion: str = "Pasto sintético"
 
-   elif (posicion == "Defender"):
-        posicion: str = "Defensor"
+    elif (dato == "goalkeeper"):
+        traduccion: str = "Arquero"
 
-   elif (posicion == "Midfielder"):
-        posicion: str = "Mediocampista"
+    elif (dato == "defender"):
+        traduccion: str = "Defensor"
 
-   return(posicion)
+    elif (dato == "midfielder"):
+        traduccion: str = "Mediocampista"
+
+    return(dato)
 
 def reordenar_fecha(fecha: str) -> tuple:
     """
@@ -340,7 +362,9 @@ def fecha_actual()->str:
     cadena = (año+mes+dia)
     return cadena
 
-def registro_transacciones(mail:str,tipo:int,importe:int):
+
+
+def registro_transacciones(mail:str,tipo:int,importe:int,lista_transacciones:list):
     #El type in del mail se puede modificar
     #Toma la fecha de hoy
     #El tipo de transaccion se determina con los valores 0,1 y 2 de la siguiente manera
@@ -353,41 +377,147 @@ def registro_transacciones(mail:str,tipo:int,importe:int):
         
     fecha = fecha_actual()
     datos_de_escritura = [[mail,fecha,resultado,importe]]
+    lista_transacciones.append(datos_de_escritura)
     
-    with open("transacciones.csv","a") as transacciones:
-        escritura_csv = csv.writer(transacciones)
-        escritura_csv.writerows(datos_de_escritura)
+def definir_partidos(equipo:str,fixture:dict)->list:
+    partidos = []
+    local = 1
+    visitante = 2
+    for partido in fixture:
+        if equipo == partido[local] or equipo == partido[visitante]:
+            partidos.append(partido)
+    return partidos
 
-def mostrar_fixture(equipo,fiture:dict):
-    pass
-def validar_apuesta_lv(lov:str):
-    pass
-def validar_apuesta_dinero(cantidad:int):
-    pass
-def resultados_apuesta(apuesta):
-    pass
-def definir_apuesta(): 
-    #ARGUMENTOS A DEFINIR, FUNCION INCOMPLETA
-    local_o_visitante = input("Ingrese a que equipo apostara (L/V)")
-    validar_apuesta_lv(local_o_visitante)
+def encuadrado(objeto:str)->str:
+    objeto = objeto + " " * (35 - (len(objeto)))
+    return objeto
+
+def mostrar_fixture(equipo:str,fixture:dict):
+    fecha = 0
+    local = 1
+    visitante = 2
+     
+    
+    lista_partidos = definir_partidos(equipo,fixture)
+    indice = 0
+    if len(lista_partidos)> 0:
+        print(" |"+"Local"+" "*30+"|"+"visitante"+" "*26+"|"+"Fecha"+" "*3+"|")
+        for partido in lista_partidos:
+            indice=indice+1
+            partido_fecha = reordenar_fecha(partido[fecha])
+            partido_local = partido[local]
+            partido_visitante = partido[visitante]
+            
+            #AGREGO ESPACIADO PARA EL CUADRO
+            partido_local = encuadrado(partido_local)
+            partido_visitante = encuadrado(partido_visitante)
+            print(f"|{indice}{partido_local}|{partido_visitante}|{partido_fecha}|")
+            
+        partido_elegido = input("Elija un partido")
+        return lista_partidos[partido_elegido-1] # El numero 1 es el 0 de la lista.
+    
+    return lista_partidos # REESTRUCTURAR DE FORMA MAS INGENIOSA
+
+def validar_apuesta_lv()-> str:
+    lov = input("Ingrese a que equipo apostara (L/V)")
+    validado = False
+    
+    while validado is False:
+        lov = lov.upper()
+        if lov != "L" or "V": 
+            lov = input("El termino ingresado no es correcto, ingrese L o V")
+        else:
+            validado = True
+            
+    return lov
+
+def apuesta_dinero(dinero_disponible:int)->int:
+    #FALTA AGREGAR LA FUNCION QUE AGREGA DINERO EN LA CUENTA
     cantidad_apostada = int(input("Ingrese la cantidad de dinero a apostar"))
-    validar_apuesta_dinero(cantidad_apostada)
+    apuesta_check = False
+    
+    
+    while apuesta_check is False:
+        if cantidad_apostada > dinero_disponible:
+            
+            print("La cantidad de dinero que quieres apostar no se encuentra disponible en tu cuenta")
+            print("1. Cargar mas dinero a la cuenta")
+            print("2. Cambiar la cantidad apostada")
+            print("3. Cancelar la operacion")
+            respuesta = input("Que curso de accion desea tomar?")
+            
+            
+            if respuesta == "1":
+                #ACA VA LA FUNCION QUE CARGA PLATA A LA CUENTA
+                pass
+            
+            elif respuesta == "2":
+                cantidad_apostada = input("Ingrese la nueva cantidad a apostar")
+                
+            elif respuesta == "3":
+                cantidad_apostada = -1
+                apuesta_check = True
+        else:
+            apuesta_check = True
+            
+    return cantidad_apostada
+                 
+def resultados_apuesta(apuesta):
+    #COMPLETAR MAÑANA XD
+    pass
+
+def definir_apuesta(datos_del_partido,dinero_en_cuenta): 
+    #ARGUMENTOS A DEFINIR, FUNCION INCOMPLETA
+    local_o_visitante =  validar_apuesta_lv()
+   
+    cantidad_apostada = apuesta_dinero(dinero_en_cuenta)
+   
     
     valor_apuesta = [local_o_visitante,cantidad_apostada]
     return valor_apuesta
     
-
-def menu_apuesta():
-    #ARGUMENTOS A DEFINIR, FUNCION INCOMPLETA
-    equipo = input("Ingrese el equipo")
-    partido = mostrar_fixture(equipo)
-    local,visitante,fecha,prediccion = partido
-    apuesta = definir_apuesta()
-    tipo,dinero_a_modificar = resultados_apuesta
-    registro_transacciones("PLACEHOLDER",tipo,dinero_a_modificar)
-    #MODIFICAR LA CANTIDAD DE DINERO EN EL DOCUMENTO DE USUARIOS
-    pass
-
+def printear_equipos_disponibles(equipos:dict)->None:
+    i = 0
+    for equipo in equipos.keys():
+        i == i + 1
+        print(f"{i}. {equipo}")
+        
+def validar_equipos(equipo:str,lista_equipos:dict):
+    equipo = equipo.upper()
+    valido = False
+    while valido is False:
+        for equipo_en_lista in lista_equipos:
+            equipo_en_lista = equipo_en_lista.upper()
+            if equipo == equipo_en_lista:
+                valido = True
+        
+        if valido is False:
+            printear_equipos_disponibles(lista_equipos)
+            equipo = input("Equipo invalido, ingrese un equipo que se encuentre en la lista")
+    
+def menu_apuesta(mail:str,dict_usuarios:dict,dict_transacciones:dict,dict_equipos:dict):
+    #FUNCION INCOMPLETA
+    
+    dinero_en_cuenta = int(dict_usuarios[mail][4])
+    is_partido_elegido = False
+    while is_partido_elegido is False:
+        printear_equipos_disponibles()
+        equipo = input("Ingrese el nombre del equipo")
+        validar_equipos(equipo)
+        
+        partido = mostrar_fixture(dict_equipos,equipo)
+        if len(partido)>0: 
+            is_partido_elegido = True
+        else:
+            print("No existen partidos del equipo elegido. Por favor elija otro equipo")
+    #local,visitante,fecha,prediccion = partido
+    
+    apuesta = definir_apuesta(partido,dinero_en_cuenta)
+    if apuesta[1] != -1:
+        tipo,dinero_a_modificar = resultados_apuesta()
+        registro_transacciones(mail,tipo,dinero_a_modificar,dict_transacciones)
+        #AGREGAR: MODIFICAR LA CANTIDAD DE DINERO EN EL DOCUMENTO DE USUARIOS
+        pass
 
 # from passlib.hash import pbkdf2_sha256
 
@@ -458,7 +588,6 @@ def listado_equipos(informacion_api:list) -> None:
         equipo = input("Equipo no encontrado, ingrese el nombre de otro equipo para ver su plantel: ")
 
     print("plantel")
-
 def opt_menu() -> None:
     opt = str(input("Ingrese una opción: "))
     while opt not in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]: opt = str(input("Ingrese una opción valida: "))
@@ -485,17 +614,21 @@ def registrarse(usuarios_diccionario:dict) -> None:
     email = str(input("Email: ")) 
     usuario = str(input("Nombre de Usuario: "))
     contraseña = str(input("Contraseña: "))
+    hash = pbkdf2_sha256.hash(contraseña)
 
     for i in usuarios_diccionario:
         if email == i:
             print(f"-"*20)
             print("Usuario ya existente, elija una opcion para continuar")
             return
-    
+        if "@" and ".com" not in email:
+            print(f"-"*20)
+            print("Formato de email incorrecto, elija una opcion para continuar")
+            return
 
     print(f"-"*20)
     print("Usuario creado exitosamente, inicie seion para continuar")
-    usuarios_diccionario[email] = [usuario, contraseña, 0, 00000000, 0] #agregar los vlaores que faltan
+    usuarios_diccionario[email] = [usuario, hash, 0, 00000000, 0] 
 
 def iniciar_sesion(usuarios_diccionario:dict) -> None:
     print(f"-"*20)
@@ -504,7 +637,7 @@ def iniciar_sesion(usuarios_diccionario:dict) -> None:
     contraseña = str(input("Contraseña: "))
 
     for i in usuarios_diccionario:
-        if email == i and contraseña == usuarios_diccionario[i][1]:
+        if email == i and pbkdf2_sha256.verify(contraseña, usuarios_diccionario[email][1]):
             print(f"-"*20)
             print(f"Bienvenido {usuarios_diccionario[i][0]}")
             return email
@@ -526,7 +659,12 @@ def print_bienvenida() -> None:
     print(f"3. Salir")
     print(f"-"*20)
 
-def transacciones_csv_to_diccionario(transacciones_diccionario: dict) -> None:
+def transacciones_lista_to_csv(lista_transacciones:list)->None:
+    with open("transacciones.csv","a") as transacciones:
+        escritura_csv = csv.writer(transacciones)
+        escritura_csv.writerows(lista_transacciones)
+    
+def transacciones_csv_to_diccionario(transacciones_diccionario: dict) -> None: #EL DOCUMENTO TRANSACCIONES ES UN REGISTRO, NO HACE FALTA LEERLO; HAGO FUNCION PARA ESCRIBIR EN APPEND
     with open("transacciones.csv", newline='', encoding="UTF-8") as transacciones_csv:
         csv_reader = csv.reader(transacciones_csv, delimiter=',')
         next(csv_reader) 
@@ -540,13 +678,38 @@ def usuarios_csv_to_diccionario(usuarios_diccionario: dict) -> None:
         for fila in csv_reader:
             usuarios_diccionario[fila[0]] = [(fila[1]),(fila[2]), float(fila[3]),int(fila[4]), float(fila[5])]
 
+    
+def finalizar_programa(lista_transacciones,lista_usuarios):
+    transacciones_lista_to_csv(lista_transacciones)
+    #ACA IRIA LA FUNCION QUE MODIFICA EL ARCHIVO DE USUARIOS ()
+    
 def main () -> None:
+
+    API: dict = {
+        "URL": "https://v3.football.api-sports.io/",
+
+        "ENDPOINTS": {
+            "temporadas": "leagues?id=128", #1 INTENTOS
+            "equipos": "teams?league=128&season=", #8 INTENTOS
+            "fixtures": "fixtures?league=128&season=2023", #1 INTENTO
+            "estadisticas": "teams/statistics?league=128&season=2023" + "&team=", #28 INTENTOS
+            "predicciones": "predictions?fixture=", #DESCONOCIDOS
+            "planteles": "players?league=128&season=2023" + "&team=", #28 INTENTOS
+            "posiciones": "standings?league=128&season=" #8 INTENTOS
+            },
+
+        "HEADERS": {
+            'x-rapidapi-host': "v3.football.api-sports.io",
+            'x-rapidapi-key': "d6b40bb947b90f57f825bd5d2508b001"
+            }
+        }
+    #informacion_api: list = diccionario_api(API)
+    lista_transacciones = [] # Lista con los registros que hay que agregar al archivo transacciones
     usuarios_diccionario = {} # email(id):[usuario, contraseña, cantidad_apostada, fecha_última_apuesta, dinero_disponible]
     transacciones_diccionario = {} # email(id):[fecha, resultado, importe]
     informacion_api =  ["temporadas", "equipos", "fixtures"] #dato_api() 
 
     email = ""
-
     usuarios_csv_to_diccionario(usuarios_diccionario)
     transacciones_csv_to_diccionario(transacciones_diccionario)
 
@@ -587,4 +750,5 @@ def main () -> None:
 
         print_bienvenida()
         opt = opt_bienvenida()
+        
 main()
