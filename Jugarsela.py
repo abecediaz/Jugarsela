@@ -81,7 +81,8 @@ def diccionario_equipos(API: dict, temporadas: dict) -> dict:
     equipos: dict = {}
 
     for key in temporadas:
-
+        
+        time.sleep(6.0)
         response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["equipos"] + str(key), headers=API["HEADERS"])).json()).get("response")
 
         for i in range (len(response)):
@@ -115,7 +116,7 @@ def diccionario_equipos(API: dict, temporadas: dict) -> dict:
 					}
 
             else:
-            
+                
                 plantel: list = informacion_planteles(API, code)
                 estadistica: dict = informacion_estadisticas(API, code)
 
@@ -144,6 +145,8 @@ def diccionario_fixtures(API: dict) -> dict:
          por id en el diccionario "fixtures".
     POST: Un valor de retorno dict. Devuelve el diccionario "fixtures" con la información detallada.
     """
+    time.sleep(6.0)
+
     fixtures: dict = {}
     hoy: str = fecha_actual()
     response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["fixtures"], headers=API["HEADERS"])).json()).get("response")
@@ -175,6 +178,8 @@ def informacion_planteles(API: dict, code: str) -> list:
          función extrae los datos disponibles del plantel y los almacena en una lista.
     POST: Un valor de retorno list. Devuelve la lista "plantel" con la información detallada.
     """
+    time.sleep(6.0)
+
     plantel: list = []
     response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["planteles"] + code, headers=API["HEADERS"])).json()).get("response")
 
@@ -200,6 +205,8 @@ def informacion_posiciones(API: dict, temporadas: dict) -> dict:
     POST: Un valor de retorno dict. Devuelve el diccionario "temporadas" con la información nueva agregada.
     """
     for key in temporadas:
+
+        time.sleep(6.0)
 
         response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["posiciones"] + str(key), headers=API["HEADERS"])).json()).get("response")
         league: dict = (response[0]).get("league")
@@ -295,8 +302,9 @@ def informacion_estadisticas(API: dict, code: str) -> dict:
          los equipos de la temporada 2023.
     POST: Un valor de retorno dict. Devuelve el diccionario "estadicticas" con la información detallada.
     """
-    estadistica: dict = {}
+    time.sleep(6.0)
 
+    estadistica: dict = {}
     response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["estadisticas"] + code, headers=API["HEADERS"])).json()).get("response")
 
     for intervalo in response[0]["goals"]["for"]["minute"]:
@@ -634,7 +642,7 @@ def main () -> None:
         "URL": "https://v3.football.api-sports.io/",
 
         "ENDPOINTS": {
-            "temporadas": "leagues?id=128", #8 INTENTOS
+            "temporadas": "leagues?id=128", #1 INTENTOS
             "equipos": "teams?league=128&season=", #8 INTENTOS
             "fixtures": "fixtures?league=128&season=2023", #1 INTENTO
             "estadisticas": "teams/statistics?league=128&season=2023" + "&team=", #28 INTENTOS
