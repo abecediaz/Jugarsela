@@ -3,6 +3,7 @@ import time
 import csv
 import os
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 from datetime import datetime
 from passlib.hash import pbkdf2_sha256
 
@@ -524,24 +525,24 @@ def menu_apuesta(mail:str,dict_usuarios:dict,dict_transacciones:dict,dict_equipo
 def apuesta_main () -> None:
     print("Menu de apuestas")
 
-def mayor_ganador (transacciones_diccionario:dict) -> None:
+def mayor_ganador (usuarios_diccionario:dict, transacciones_listado:list) -> None:
     cantidad_apuestas = {} # usuario: cantidad
     mayor_ganador = ""
     mayor_veces_ganado = 0
 
 
-    for i in transacciones_diccionario:
-        if transacciones_diccionario[3] == "Gana":
-            if i not in cantidad_apuestas:
-                cantidad_apuestas[i] = 1
-            else: cantidad_apuestas[i] += 1
+    for i in range(len(transacciones_listado)):
+        if transacciones_listado[i][2] == "Gana":
+            if transacciones_listado[i][0] not in cantidad_apuestas:
+                cantidad_apuestas[transacciones_listado[i][0]] = 1
+            else: cantidad_apuestas[transacciones_listado[i][0]] += 1
 
     for i in cantidad_apuestas:
         if cantidad_apuestas[i] >= mayor_veces_ganado:
             mayor_veces_ganado = cantidad_apuestas[i]
             mayor_ganador = i
 
-    print(f"El usuario que más veces ganó es {i}")
+    print(f"El usuario que más veces ganó es {usuarios_diccionario[mayor_ganador][0]}")
     
 def mayor_apostador (usuarios_diccionario:dict) -> None:
     mayor_apostador = ""
@@ -554,19 +555,40 @@ def mayor_apostador (usuarios_diccionario:dict) -> None:
 
     print(f"El usuario que más dinero apostó es {mayor_apostador} ")
 
-def cargar_dinero (email:str, usuarios_diccionario:dict, transacciones_diccionario:dict) -> None:
+def cargar_dinero (email:str, usuarios_diccionario:dict, transacciones_listado:list) -> None:
     print("Carga de Dinero")
     dinero = float(input("Ingrese la cantidad de dinero que quiere ingresar en su cuenta: "))
     while dinero <= 0: dinero = float(input("Error, ingrese la cantidad de dinero que quiere ingresar en su cuenta: "))
     
     usuarios_diccionario[email][4] += dinero
-    # transacciones_diccionario[email] = ""
+    transacciones_listado.append([email,"fecha","Deposita",usuarios_diccionario[email][4]])
     print(f"Dinero disponible: {usuarios_diccionario[email][4]}")
 
-def grafica_goles () -> None:
-    print("grafica de goles")
+def grafica_goles (informacion_api:list) -> None:
+    print("Grafica de Goles")
+    equipo = str(input("Ingrese el equipo para ver sus goles por partido: ")) #validacion del equipo
+
+    # estadisticas = informacion_api[2][equipo]["estadisticas"]
+
+    estadisticas = {"3": 5, "5": 8,"6": 10}
+    minutos: list = []
+    goles: list = []
+
+    for tiempo in estadisticas:
+        minutos.append(tiempo)
+        goles.append(estadisticas[tiempo])
+
+    plt.xlabel('MINUTOS')
+    plt.ylabel('GOLES')
+    plt.title('GOLES REALIZADOS POR INTERVALO DE TIEMPO')
+
+    plt.bar(minutos, goles)
+    plt.show()
+
 
 def informacion_equipo(informacion_api:list) -> None:
+    equipos = informacion_api[1]
+
     print("Informacion de equipos")
     equipo = input("Ingrese el nombre de un equipo para ver su informacion: ")
     while equipo not in informacion_api[1]:
@@ -574,10 +596,28 @@ def informacion_equipo(informacion_api:list) -> None:
 
     print("Informacion del estadio")
 
-    print("Escudo")
+    # print(f"El estadio de {equipos["NOMBRE EQUIPO"]} fue bautizado como {equipos["NOMBRE EQUIPO"]["estadio"]'. El mismo se encuentra en equipos["NOMBRE EQUIPO"]["direccion"], equipos["NOMBRE EQUIPO"]["ciudad"]. Tiene una capacidad total de equipos["NOMBRE EQUIPO"]["capacidad"] espectadores, y su superficie está hecha de equipos["NOMBRE EQUIPO"]["superficie"].")
 
-def tabla_posiciones() -> None:
+    plt.imshow(equipos["NOMBRE EQUIPO"]["foto"])
+    plt.show()
+
+    print(f"Y su escudo, es el siguiente")
+
+    plt.imshow(equipos["NOMBRE EQUIPO"]["escudo"])
+    plt.show()
+
+def tabla_posiciones(informacion_api:list) -> None:
+    temporadas = informacion_api[0]
+
     print("Tabla de posiciones de la Liga Profesional")
+    temporada = int(input("Ingrese la temporada de la cual quiere ver su ranking: "))
+    while temporada < 2015 or temporada > 2023:
+        temporada = int(input("Las temporadas disponibles son 2015-2023, ingrese la temporada de la cual quiere ver su ranking: "))
+
+    if temporada == 2020:
+        for i in temporadas["2015-2019"]["1er Año"]:
+            print(temporadas[temporada][i][0]) #EQUIPOS
+            print(temporadas[temporada][i][0]) #PUNTOS
 
 def listado_equipos(informacion_api:list) -> None:
     print("Listado de equipos de la Liga Profesional correspondiente temporada 2023")
@@ -637,7 +677,8 @@ def iniciar_sesion(usuarios_diccionario:dict) -> None:
     contraseña = str(input("Contraseña: "))
 
     for i in usuarios_diccionario:
-        if email == i and pbkdf2_sha256.verify(contraseña, usuarios_diccionario[email][1]):
+        # if email == i and pbkdf2_sha256.verify(contraseña, usuarios_diccionario[email][1]):
+        if email == i and contraseña == usuarios_diccionario[email][1]:
             print(f"-"*20)
             print(f"Bienvenido {usuarios_diccionario[i][0]}")
             return email
@@ -664,12 +705,13 @@ def transacciones_lista_to_csv(lista_transacciones:list)->None:
         escritura_csv = csv.writer(transacciones)
         escritura_csv.writerows(lista_transacciones)
     
-def transacciones_csv_to_diccionario(transacciones_diccionario: dict) -> None: #EL DOCUMENTO TRANSACCIONES ES UN REGISTRO, NO HACE FALTA LEERLO; HAGO FUNCION PARA ESCRIBIR EN APPEND
+def transacciones_csv_to_listado(transacciones_listado: list) -> None: #EL DOCUMENTO TRANSACCIONES ES UN REGISTRO, NO HACE FALTA LEERLO; HAGO FUNCION PARA ESCRIBIR EN APPEND
     with open("transacciones.csv", newline='', encoding="UTF-8") as transacciones_csv:
         csv_reader = csv.reader(transacciones_csv, delimiter=',')
         next(csv_reader) 
         for fila in csv_reader:
-            transacciones_diccionario[fila[0]] = [(fila[1]),(fila[2]),(fila[3])]
+            transacciones_listado.append([fila[0],fila[1],fila[2],float(fila[3])])
+
 
 def usuarios_csv_to_diccionario(usuarios_diccionario: dict) -> None:
     with open("usuarios.csv", newline='', encoding="UTF-8") as usarios_csv:
@@ -703,15 +745,15 @@ def main () -> None:
             'x-rapidapi-key': "d6b40bb947b90f57f825bd5d2508b001"
             }
         }
-    #informacion_api: list = diccionario_api(API)
+    
     lista_transacciones = [] # Lista con los registros que hay que agregar al archivo transacciones
     usuarios_diccionario = {} # email(id):[usuario, contraseña, cantidad_apostada, fecha_última_apuesta, dinero_disponible]
-    transacciones_diccionario = {} # email(id):[fecha, resultado, importe]
-    informacion_api =  ["temporadas", "equipos", "fixtures"] #dato_api() 
+    transacciones_listado = [] # email(id):[fecha, resultado, importe]
+    informacion_api =  ["temporadas", "equipos", "fixtures"] #dato_api()   #informacion_api: list = diccionario_api(API)
 
     email = ""
     usuarios_csv_to_diccionario(usuarios_diccionario)
-    transacciones_csv_to_diccionario(transacciones_diccionario)
+    transacciones_csv_to_listado(transacciones_listado)
 
     print(f"Bienvenido")
     print_bienvenida()
@@ -730,17 +772,17 @@ def main () -> None:
                 if opcion == "1":
                     listado_equipos(informacion_api) 
                 elif opcion == "2":
-                    tabla_posiciones()
+                    tabla_posiciones(informacion_api)
                 elif opcion == "3":
                     informacion_equipo(informacion_api)
                 elif opcion == "4":
-                    grafica_goles()
+                    grafica_goles(informacion_api)
                 elif opcion == "5":
-                    cargar_dinero(email, usuarios_diccionario, transacciones_diccionario)
+                    cargar_dinero(email, usuarios_diccionario, transacciones_listado)
                 elif opcion == "6":
                     mayor_apostador(usuarios_diccionario)
                 elif opcion == "7":
-                    mayor_ganador(transacciones_diccionario)
+                    mayor_ganador(usuarios_diccionario,transacciones_listado)
                 elif opcion == "8":
                     apuesta_main()
 
