@@ -100,7 +100,7 @@ def diccionario_equipos(API: dict, temporadas: dict) -> dict:
             superficie: str = traducir_dato(response[i]["venue"]["surface"].lower())
             foto: str = response[i]["venue"]["image"]
 
-            if (int(key) != int(year)):
+            if (int(key) != 2023):
 
                 if (nombre_equipo not in equipos):
                     equipos[nombre_equipo] = {
@@ -380,13 +380,13 @@ def registro_transacciones(mail:str,tipo:int,importe:int,lista_transacciones:lis
     datos_de_escritura = [[mail,fecha,resultado,importe]]
     lista_transacciones.append(datos_de_escritura)
     
-def definir_partidos(equipo:str,fixture:dict)->list:
+def definir_partidos(equipo:str,fixtures:dict)->list:
     partidos = []
     local = 1
     visitante = 2
-    for partido in fixture:
-        if equipo == partido[local] or equipo == partido[visitante]:
-            partidos.append(partido)
+    for partido in fixtures[equipo]:
+        if equipo == fixtures[equipo]["local"] or equipo == fixtures[equipo]["visitante"]:
+            partidos.append(fixtures[equipo])
     return partidos
 
 def encuadrado(objeto:str)->str:
