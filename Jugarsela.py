@@ -1,11 +1,13 @@
+from passlib.hash import pbkdf2_sha256
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+from datetime import datetime
 import requests
 import time
 import csv
 import os
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-from datetime import datetime
-from passlib.hash import pbkdf2_sha256
+
+from informacion_api import informacion_api
 
 def diccionario_api(API: dict) -> list:
     """
@@ -309,13 +311,13 @@ def informacion_estadisticas(API: dict, code: str) -> dict:
     estadistica: dict = {}
     response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["estadisticas"] + code, headers=API["HEADERS"])).json()).get("response")
 
-    for intervalo in response[0]["goals"]["for"]["minute"]:
+    for intervalo in response["goals"]["for"]["minute"]:
         
-        if (response[0]["goals"]["for"]["minute"][intervalo]["total"] == None):
+        if (response["goals"]["for"]["minute"][intervalo]["total"] == None):
             goles: int = 0
 
         else:
-            goles: int = response[0]["goals"]["for"]["minute"][intervalo]["total"]
+            goles: int = response["goals"]["for"]["minute"][intervalo]["total"]
         
         estadistica[intervalo] = goles
 
@@ -731,13 +733,13 @@ def main () -> None:
         "URL": "https://v3.football.api-sports.io/",
 
         "ENDPOINTS": {
-            "temporadas": "leagues?id=128", #1 INTENTOS
-            "equipos": "teams?league=128&season=", #8 INTENTOS
-            "fixtures": "fixtures?league=128&season=2023", #1 INTENTO
-            "estadisticas": "teams/statistics?league=128&season=2023" + "&team=", #28 INTENTOS
-            "predicciones": "predictions?fixture=", #DESCONOCIDOS
-            "planteles": "players?league=128&season=2023" + "&team=", #28 INTENTOS
-            "posiciones": "standings?league=128&season=" #8 INTENTOS
+            "temporadas": "leagues?id=128",
+            "equipos": "teams?league=128&season=",
+            "fixtures": "fixtures?league=128&season=2023",
+            "estadisticas": "teams/statistics?league=128&season=2023" + "&team=",
+            "predicciones": "predictions?fixture=",
+            "planteles": "players?league=128&season=2023" + "&team=",
+            "posiciones": "standings?league=128&season="
             },
 
         "HEADERS": {
@@ -746,6 +748,8 @@ def main () -> None:
             }
         }
     
+    #informacion_api: list = diccionario_api(API)
+
     lista_transacciones = [] # Lista con los registros que hay que agregar al archivo transacciones
     usuarios_diccionario = {} # email(id):[usuario, contraseña, cantidad_apostada, fecha_última_apuesta, dinero_disponible]
     transacciones_listado = [] # email(id):[fecha, resultado, importe]
