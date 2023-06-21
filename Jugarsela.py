@@ -93,7 +93,6 @@ def diccionario_equipos(API: dict, temporadas: dict) -> dict:
 
             nombre_equipo: str = response[i]["team"]["name"]
             code: str = str(response[i]["team"]["id"])
-            año: str = str(response[i]["team"]["founded"])
             escudo: str = response[i]["team"]["logo"]
             nombre_estadio: str = response[i]["venue"]["name"]
             direccion: str = response[i]["venue"]["address"]
@@ -107,7 +106,6 @@ def diccionario_equipos(API: dict, temporadas: dict) -> dict:
                 if (nombre_equipo not in equipos):
                     equipos[nombre_equipo] = {
 					"id": code,
-					"año": año,
 					"escudo": escudo,
 					"estadio": nombre_estadio,
 					"direccion": direccion,
@@ -127,7 +125,6 @@ def diccionario_equipos(API: dict, temporadas: dict) -> dict:
                 if (nombre_equipo not in equipos):
                     equipos[nombre_equipo] = {
 					"id": code,
-					"año": año,
 					"escudo": escudo,
 					"estadio": nombre_estadio,
 					"direccion": direccion,
@@ -138,6 +135,10 @@ def diccionario_equipos(API: dict, temporadas: dict) -> dict:
 					"plantel": plantel,
 					"estadisticas": estadistica
 					}
+
+                else:
+                    equipos[nombre_equipo]["plantel"] = plantel
+                    equipos[nombre_equipo]["estadisticas"] = estadisticas
     
     imprimir_carga(2)
 
@@ -340,7 +341,7 @@ def traducir_dato(dato: str) -> str:
     elif (dato == "midfielder"):
         traduccion: str = "Mediocampista"
 
-    return(dato)
+    return(traduccion)
 
 def reordenar_fecha(fecha: str) -> tuple:
     """
