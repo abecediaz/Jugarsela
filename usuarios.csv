@@ -1,12 +1,13 @@
-email, usuario, contraseña, cantidad apostada, fecha última apuesta, dinero
-admin,admin,admin,0,20220620,245000
-email1@example.com,usuario1,contrasena1,518,20220620,245
-email2@example.com,usuario2,contrasena2,789,20211203,512
-email3@example.com,usuario3,contrasena3,234,20230411,102
-email4@example.com,usuario4,contrasena4,645,20210928,899
-email5@example.com,usuario5,contrasena5,789,20230214,64
-email6@example.com,usuario6,contrasena6,421,20211107,974
-email7@example.com,usuario7,contrasea7,857,20220701,178
-email8@example.com,usuario8,contrasena8,932,20210815,791
-email9@example.com,usuario9,contrasena9,192,20230123,423
-email10@example.com,usuario10,contrasea10,523,20220309,989
+email,usuario,contrasena,cantidad apostada,fecha ultima apuesta,dinero
+email1@example.com,usuario1,contrasena1,518.0,20220620,245.0
+email2@example.com,usuario2,contrasena2,789.0,20211203,512.0
+email3@example.com,usuario3,contrasena3,234.0,20230411,102.0
+email4@example.com,usuario4,contrasena4,645.0,20210928,899.0
+email5@example.com,usuario5,contrasena5,789.0,20230214,64.0
+email6@example.com,usuario6,contrasena6,421.0,20211107,974.0
+email7@example.com,usuario7,contrasea7,857.0,20220701,178.0
+email8@example.com,usuario8,contrasena8,932.0,20210815,791.0
+email9@example.com,usuario9,contrasena9,192.0,20230123,423.0
+email10@example.com,usuario10,contrasea10,523.0,20220309,989.0
+felipe@gmail.com,felipe,$pbkdf2-sha256$29000$c8753xtjTElJCaE0JiTk3A$aXQHzHM5WW2kNE3WGv8DR.fV.iRokdn71PWfFIuIlaU,0.0,0,100.0
+admin,admin,$pbkdf2-sha256$29000$H4OwlrJ2rrU2JoRwzvlf6w$nIpavWNSVGu950c8ExrGilN.pgPRMJLHDcnSzDQHOwA,0.0,20220620,245100.0

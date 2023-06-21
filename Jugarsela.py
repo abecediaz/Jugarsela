@@ -566,7 +566,7 @@ def apuesta_dinero(dinero_disponible:int)->int:
                 pass
             
             elif respuesta == "2":
-                cantidad_apostada = intinput("Ingrese la nueva cantidad a apostar")
+                cantidad_apostada = int(input("Ingrese la nueva cantidad a apostar: "))
                 
             elif respuesta == "3":
                 cantidad_apostada = -1
@@ -701,7 +701,7 @@ def registrarse(usuarios_diccionario:dict) -> None:
 
     print(f"-"*20)
     print("Usuario creado exitosamente, inicie seion para continuar")
-    usuarios_diccionario[email] = [usuario, hash, 0, 00000000, 0] 
+    usuarios_diccionario[email] = [usuario, hash, float(0), 00000000, float(0)] 
 
 def iniciar_sesion(usuarios_diccionario:dict) -> None:
     print(f"-"*20)
@@ -710,8 +710,7 @@ def iniciar_sesion(usuarios_diccionario:dict) -> None:
     contraseña = str(input("Contraseña: "))
 
     for i in usuarios_diccionario:
-        # if email == i and pbkdf2_sha256.verify(contraseña, usuarios_diccionario[email][1]):
-        if email == i and contraseña == usuarios_diccionario[email][1]:
+        if email == i and pbkdf2_sha256.verify(contraseña, usuarios_diccionario[email][1]):
             print(f"-"*20)
             print(f"Bienvenido {usuarios_diccionario[i][0]}")
             return email
@@ -733,12 +732,26 @@ def print_bienvenida() -> None:
     print(f"3. Salir")
     print(f"-"*20)
 
-def transacciones_lista_to_csv(lista_transacciones:list)->None:
-    with open("transacciones.csv","a") as transacciones:
-        escritura_csv = csv.writer(transacciones)
-        escritura_csv.writerows(lista_transacciones)
+def escritura_usuarios(usuarios_diccionario: dict) -> None:
+    with open("usuarios.csv", "w", newline = "") as usuarios_csv:
+        writer = csv.writer(usuarios_csv)
+        writer.writerow(["email","usuario","contrasena","cantidad apostada","fecha ultima apuesta","dinero"])
+        for i in usuarios_diccionario:
+            writer.writerow([i,usuarios_diccionario[i][0],usuarios_diccionario[i][1],usuarios_diccionario[i][2],usuarios_diccionario[i][3],usuarios_diccionario[i][4]])
+
+def escritura_transacciones(transacciones_listado: list)-> None:
+    with open("transacciones.csv", "w", newline = "") as transacciones_csv:
+        writer = csv.writer(transacciones_csv)
+        writer.writerow(["email","fecha","resultado","importe"])
+        for i in range(len(transacciones_listado)):
+            writer.writerow(transacciones_listado[i])
+
+def finalizar_programa(transacciones_listado: list,usuarios_diccionario: dict) -> None:
+    print("Finalizando programa...")
+    escritura_transacciones(transacciones_listado)
+    escritura_usuarios(usuarios_diccionario)
     
-def transacciones_csv_to_listado(transacciones_listado: list) -> None: #EL DOCUMENTO TRANSACCIONES ES UN REGISTRO, NO HACE FALTA LEERLO; HAGO FUNCION PARA ESCRIBIR EN APPEND
+def transacciones_csv_to_listado(transacciones_listado: list) -> None: 
     with open("transacciones.csv", newline='', encoding="UTF-8") as transacciones_csv:
         csv_reader = csv.reader(transacciones_csv, delimiter=',')
         next(csv_reader) 
@@ -751,10 +764,6 @@ def usuarios_csv_to_diccionario(usuarios_diccionario: dict) -> None:
         next(csv_reader) 
         for fila in csv_reader:
             usuarios_diccionario[fila[0]] = [(fila[1]),(fila[2]), float(fila[3]),int(fila[4]), float(fila[5])]
-   
-def finalizar_programa(lista_transacciones,lista_usuarios):
-    transacciones_lista_to_csv(lista_transacciones)
-    #ACA IRIA LA FUNCION QUE MODIFICA EL ARCHIVO DE USUARIOS ()
     
 def main () -> None:
     TEMPORADAS = 0 
@@ -780,8 +789,6 @@ def main () -> None:
         }
     
     #informacion_api: list = diccionario_api(API)
-
-    lista_transacciones = [] # Lista con los registros que hay que agregar al archivo transacciones
     usuarios_diccionario = {} # email(id):[usuario, contraseña, cantidad_apostada, fecha_última_apuesta, dinero_disponible]
     transacciones_listado = [] # email(id):[fecha, resultado, importe]
     informacion_api =  apixd()  #informacion_api: list = diccionario_api(API)
@@ -827,5 +834,5 @@ def main () -> None:
 
         print_bienvenida()
         opt = opt_bienvenida()
-        
+    finalizar_programa(transacciones_listado,usuarios_diccionario)
 main()
