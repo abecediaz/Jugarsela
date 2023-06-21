@@ -379,6 +379,7 @@ def registro_transacciones(mail:str,tipo:int,importe:int,lista_transacciones:lis
     datos_de_escritura = [[mail,fecha,resultado,importe]]
     lista_transacciones.append(datos_de_escritura)
     
+
 def mayor_ganador (usuarios_diccionario:dict, transacciones_listado:list) -> None:
     cantidad_apuestas = {} # usuario: cantidad
     mayor_ganador = ""
@@ -490,8 +491,8 @@ def definir_partidos(equipo:str,fixtures:dict)->list:
         if equipo == fixtures[partido][local] or equipo == fixtures[partido][visitante]:
             info_partidos:list = fixtures[partido]
             info_partidos.append(partido)
-            partidos.append(info_partidos)
-            
+            partidos.append(info_partidos)          
+
     return partidos
 
 def encuadrado(objeto:str)->str:
