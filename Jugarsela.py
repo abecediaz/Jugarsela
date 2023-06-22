@@ -505,7 +505,7 @@ def encuadrado(objeto:str)->str:
     objeto = objeto + " " * (35 - (len(objeto)))
     return objeto
 
-def mostrar_fixture(equipo:str,fixture:dict):
+def mostrar_fixture(equipo:str,fixture:dict)->dict:
     partidos_a_alegir = (definir_partidos(equipo,fixture)).items()
     indice = 0
     if len(partidos_a_alegir)> 0:
@@ -513,7 +513,7 @@ def mostrar_fixture(equipo:str,fixture:dict):
         for partido in partidos_a_alegir:
             indice=indice+1
             año,mes,dia = partido[1]["fecha"]
-            partido_fecha = año+mes+dia
+            partido_fecha = año+"-"+mes+"-"+dia
             partido_local = partido[1]["local"]
             partido_visitante = partido[1]["visitante"]
             
@@ -522,13 +522,27 @@ def mostrar_fixture(equipo:str,fixture:dict):
             partido_visitante = encuadrado(partido_visitante)
             print(f"|{indice}| {partido_local}|{partido_visitante}|{partido_fecha}|")
             
-        partido_elegido = int(input("Elija un partido "))
-        partidos_a_alegir = list(partidos_a_alegir)
-        return partidos_a_alegir[partido_elegido-1] # El numero 1 es el 0 de la lista.
+        
+        partido_elegido = int(input("Elija un partido indicando su numero \n"))
+        partido_valido = False
+        #Validacion
+        while partido_valido is False:
+            if partido_elegido <= len(partidos_a_alegir):
+                partidos_a_alegir = list(partidos_a_alegir)
+                partido_valido = True
+                continue
+            else:
+                partido_elegido = int(input("Por favor, elija un partido de la lista \n"))
+                
+    #En caso de que el equipo elegido no tenga partidos a jugar, devuelve un diccionario vacio
+    else:
+        partido_elegido = 1
+        partidos_a_alegir = [{}]
+        
+    return partidos_a_alegir[partido_elegido-1] # El numero 1 es el 0 de la lista.
     
-
 def validar_apuesta_lv()-> str:
-    lov = input("Ingrese a que equipo apostara Ganador(L)/Empate/Ganador(V) ")
+    lov = input("Ingrese la opcion a la que apostara Ganador(L)/Empate/Ganador(V) ")
     validado = False
     
     while validado is False:
@@ -547,7 +561,8 @@ def validar_apuesta_lv()-> str:
 
 def apuesta_dinero(dinero_disponible:int)->int:
     #FALTA AGREGAR LA FUNCION QUE AGREGA DINERO EN LA CUENTA
-    cantidad_apostada = int(input("Ingrese la cantidad de dinero a apostar"))
+    print(f"Actualmente tiene {dinero_disponible}$ en la cuenta")
+    cantidad_apostada = int(input("Ingrese la cantidad de dinero a apostar \n"))
     apuesta_check = False
     
     
@@ -555,56 +570,28 @@ def apuesta_dinero(dinero_disponible:int)->int:
         if cantidad_apostada > dinero_disponible:
             
             print("La cantidad de dinero que quieres apostar no se encuentra disponible en tu cuenta")
-            print("1. Cargar mas dinero a la cuenta")
-            print("2. Cambiar la cantidad apostada")
-            print("3. Cancelar la operacion")
+            print(f"Actualmente tiene {dinero_disponible}$ en la cuenta")
+            print("1. Cambiar la cantidad apostada")
+            print("2. Cancelar la operacion")
             respuesta = input("Que curso de accion desea tomar?")
             
             
             if respuesta == "1":
-                #ACA VA LA FUNCION QUE CARGA PLATA A LA CUENTA
-                pass
+               cantidad_apostada = int(input("Ingrese la nueva cantidad a apostar: "))
             
             elif respuesta == "2":
-                cantidad_apostada = int(input("Ingrese la nueva cantidad a apostar: "))
-                
-            elif respuesta == "3":
                 cantidad_apostada = -1
-                apuesta_check = True
+                apuesta_check = True         
         else:
             apuesta_check = True
             
     return cantidad_apostada
         
-def pago_apuesta(resultado_apostado:int,dinero_apostado:int,prediccion:int,resultado_final:int,ratio_pago:int)->tuple:
-    balance_final = 0
-    tipo = ""
-    
-    if resultado_apostado == resultado_final:
-        tipo = "Gana"
-        if resultado_apostado == 2:
-            balance_final == dinero_apostado + (dinero_apostado*ratio_pago)/2
-        elif resultado_apostado == prediccion:
-            balance_final == dinero_apostado + (dinero_apostado*ratio_pago)/10
-        else:
-            balance_final == dinero_apostado + (dinero_apostado*ratio_pago)
-    else:
-        tipo = "Pierde"
-        balance_final = -dinero_apostado
-        
-    return (balance_final,tipo) 
-
-def resultados_apuesta(apuesta,partido,api):
-    id = partido[0]
-    resultado_apostado,dinero_apostado = apuesta
-    prediccion = informacion_predicciones("API", id)
-    ganador = random.randint(1,3)
-    ratio_pago = random.randint(1,4)
-    
-    return pago_apuesta(resultado_apostado,dinero_apostado,prediccion,ganador,ratio_pago)
-
-def definir_apuesta(datos_del_partido,dinero_en_cuenta): 
+def definir_apuesta(datos_del_partido,dinero_en_cuenta:float)->list: 
     #ARGUMENTOS A DEFINIR, FUNCION INCOMPLETA
+    local = datos_del_partido[1]["local"]
+    visitante = datos_del_partido[1]["visitante"] 
+    print(f"{local}(L) - {visitante}(V)")
     local_o_visitante =  validar_apuesta_lv()
    
     cantidad_apostada = apuesta_dinero(dinero_en_cuenta)
@@ -612,7 +599,44 @@ def definir_apuesta(datos_del_partido,dinero_en_cuenta):
     
     valor_apuesta = [local_o_visitante,cantidad_apostada]
     return valor_apuesta
+
+def pago_apuesta(resultado_apostado:int,dinero_apostado:int,prediccion:int,resultado_final:int,ratio_pago:int)->tuple:
+    balance_final = 0
+    tipo = ""
     
+    if resultado_apostado == resultado_final:
+        tipo = "Gana"
+        if resultado_apostado == 2:
+            balance_final = dinero_apostado + (dinero_apostado*ratio_pago)/2
+        elif resultado_apostado == prediccion:
+            balance_final = dinero_apostado + (dinero_apostado*ratio_pago)/10
+        else:
+            balance_final = dinero_apostado + (dinero_apostado*ratio_pago)
+    else:
+        tipo = "Pierde"
+        balance_final = -dinero_apostado
+        
+    return (balance_final,tipo) 
+def predicciones(partido,api)->None:
+    id = partido[0]
+    local = partido[1]["local"].upper()
+    visitante = partido[1]["visitante"].upper()
+    prediccion_str = informacion_predicciones(api, id).upper()
+
+    if prediccion_str == local:
+        prediccion_int = 1
+    elif prediccion_str == visitante:
+        prediccion_int = 3
+    return prediccion_int
+
+def resultados_apuesta(apuesta,partido,api:dict):
+    resultado_apostado,dinero_apostado = apuesta
+    prediccion = predicciones(partido,api)
+    ganador = random.randint(1,3)
+    ratio_pago = random.randint(1,4)
+    
+    return pago_apuesta(resultado_apostado,dinero_apostado,prediccion,ganador,ratio_pago)
+ 
 def printear_equipos_disponibles(equipos:dict)->None:
     i = 0
     for equipo in equipos.keys():
@@ -620,6 +644,7 @@ def printear_equipos_disponibles(equipos:dict)->None:
         print(f"{i}. {equipo}")
         
 def validar_equipos(lista_equipos:dict)->str:
+    printear_equipos_disponibles(lista_equipos)
     equipo = input("Ingrese el nombre del equipo \n")
     valido = False
     while valido is False:
@@ -632,16 +657,20 @@ def validar_equipos(lista_equipos:dict)->str:
             
         if valido is False:
             printear_equipos_disponibles(lista_equipos)
-    
             equipo = input("Equipo invalido, ingrese un equipo que se encuentre en la lista \n")
             
     return equipo
 
-def menu_apuesta(mail:str,dict_usuarios:dict,dict_transacciones:dict,dict_equipos:dict,fixture:dict)->None:
+def anunciar_resultado(dinero)->None:
+    if dinero < 0:
+        print(f"Has perdido {-dinero}$")
+    elif dinero > 0:
+        print(f"Has ganado {dinero}$")
+
+def menu_apuesta(mail:str,dict_usuarios:dict,lista_transacciones:list,dict_equipos:dict,fixture:dict,api:dict)->None:
     dinero_en_cuenta = int(dict_usuarios[mail][4])
     is_partido_elegido = False
     while is_partido_elegido is False:
-        printear_equipos_disponibles(dict_equipos)
         equipo = validar_equipos(dict_equipos)
     
         partido = mostrar_fixture(equipo,fixture)
@@ -652,15 +681,11 @@ def menu_apuesta(mail:str,dict_usuarios:dict,dict_transacciones:dict,dict_equipo
     
     apuesta = definir_apuesta(partido,dinero_en_cuenta)
     if apuesta[1] != -1:
-        tipo,dinero_a_modificar = resultados_apuesta(apuesta,partido)
-        #registro_transacciones(mail,tipo,dinero_a_modificar,dict_transacciones)
-        #AGREGAR: MODIFICAR LA CANTIDAD DE DINERO EN EL DOCUMENTO DE USUARIOS
-
-
-def apuesta_main () -> None:
-    print("Menu de apuestas")
-
-
+        dinero_a_modificar,tipo = resultados_apuesta(apuesta,partido,api)
+        lista_transacciones.append([mail,fecha_actual(),tipo,dinero_a_modificar])
+        dict_usuarios[mail][4] += dinero_a_modificar
+        anunciar_resultado(dinero_a_modificar)
+    
 def opt_menu() -> None:
     opt = str(input("Ingrese una opción: "))
     while opt not in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]: opt = str(input("Ingrese una opción valida: "))
@@ -826,7 +851,7 @@ def main () -> None:
                 elif opcion == "7":
                     mayor_ganador(usuarios_diccionario,transacciones_listado)
                 elif opcion == "8":
-                    menu_apuesta(email,usuarios_diccionario,transacciones_listado,informacion_api[1],informacion_api[2])
+                    menu_apuesta(email,usuarios_diccionario,transacciones_listado,informacion_api[1],informacion_api[2],API)
 
                 print_menu()
                 opcion = opt_menu()
