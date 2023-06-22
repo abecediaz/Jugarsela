@@ -142,7 +142,7 @@ def diccionario_equipos(API: dict, temporadas: dict) -> dict:
 
                 else:
                     equipos[nombre_equipo]["plantel"] = plantel
-                    equipos[nombre_equipo]["estadisticas"] = estadisticas
+                    equipos[nombre_equipo]["estadisticas"] = estadistica
     
     imprimir_carga(2)
 
@@ -385,6 +385,18 @@ def registro_transacciones(mail:str,tipo:int,importe:int,lista_transacciones:lis
     datos_de_escritura = [[mail,fecha,resultado,importe]]
     lista_transacciones.append(datos_de_escritura)
     
+def validacion_temporada_2023(equipo_elejido: str, numero_fase) -> bool:
+    equipos_temporada: list = []
+    for fase in numero_fase:
+
+        for i in range (len(numero_fase[fase])):
+            equipo: str = numero_fase[fase][i][0]
+
+            if equipo not in equipos_temporada:
+                equipos_temporada.append(equipo)
+
+    if equipo_elejido in equipos_temporada: return False
+    else: return True
 
 def mayor_ganador (usuarios_diccionario:dict, transacciones_listado:list) -> None:
     cantidad_apuestas = {} # usuario: cantidad
@@ -422,19 +434,20 @@ def cargar_dinero (email:str, usuarios_diccionario:dict, transacciones_listado:l
     while dinero <= 0: dinero = float(input("Error, ingrese la cantidad de dinero que quiere ingresar en su cuenta: "))
     
     usuarios_diccionario[email][4] += dinero
-    transacciones_listado.append([email,"fecha","Deposita",usuarios_diccionario[email][4]])
+    fecha = fecha_actual()
+
+    transacciones_listado.append([email,fecha,"Deposita",dinero])
     print(f"Dinero disponible: {usuarios_diccionario[email][4]}")
 
 def grafica_goles (informacion_api:list) -> None:
-    print("Grafica de Goles")
-    equipo = str(input("Ingrese el equipo para ver sus goles por partido: ")) #validacion del equipo
+    print("Estadistica goles por minutos")
+    equipo: str = input("Ingrese el equipo para ver sus goles por partido: ").capitalize()
+    while validacion_temporada_2023(equipo, informacion_api[0][2023]): equipo: str = input("El equipo que ingresó no es válido o no forma parte de la temporada 2023. Inténtelo nuevamente: ").capitalize()
 
-    # estadisticas = informacion_api[2][equipo]["estadisticas"]
-
-    estadisticas = {"3": 5, "5": 8,"6": 10}
+    estadisticas = informacion_api[1][equipo]["estadisticas"]
     minutos: list = []
     goles: list = []
-
+    
     for tiempo in estadisticas:
         minutos.append(tiempo)
         goles.append(estadisticas[tiempo])
@@ -447,23 +460,22 @@ def grafica_goles (informacion_api:list) -> None:
     plt.show()
 
 def informacion_equipo(informacion_api:list) -> None:
-    equipos = informacion_api[1]
+    equipos = (informacion_api[1])
 
     print("Informacion de equipos")
     equipo = input("Ingrese el nombre de un equipo para ver su informacion: ")
-    while equipo not in informacion_api[1]:
+    while equipo not in list(informacion_api[1].keys()):
         equipo = input("Equipo no encontrado, ingrese el nombre de otro equipo para ver su informacion: ")
 
-    print("Informacion del estadio")
+   
+    print(f'El estadio de {equipo} fue bautizado como {equipos[equipo]["estadio"]}. El mismo se encuentra en {equipos[equipo]["direccion"]}, {equipos[equipo]["ciudad"]}. Tiene una capacidad total de {equipos[equipo]["capacidad"]} espectadores, y su superficie está hecha de {equipos[equipo]["superficie"]}.')
 
-    # print(f"El estadio de {equipos["NOMBRE EQUIPO"]} fue bautizado como {equipos["NOMBRE EQUIPO"]["estadio"]'. El mismo se encuentra en equipos["NOMBRE EQUIPO"]["direccion"], equipos["NOMBRE EQUIPO"]["ciudad"]. Tiene una capacidad total de equipos["NOMBRE EQUIPO"]["capacidad"] espectadores, y su superficie está hecha de equipos["NOMBRE EQUIPO"]["superficie"].")
-
-    plt.imshow(equipos["NOMBRE EQUIPO"]["foto"])
+    plt.imshow(equipos[equipo]["foto"])
     plt.show()
 
     print(f"Y su escudo, es el siguiente")
 
-    plt.imshow(equipos["NOMBRE EQUIPO"]["escudo"])
+    plt.imshow(equipos[equipo]["escudo"])
     plt.show()
 
 def tabla_posiciones(informacion_api:list) -> None:
@@ -474,20 +486,39 @@ def tabla_posiciones(informacion_api:list) -> None:
     while temporada < 2015 or temporada > 2023:
         temporada = int(input("Las temporadas disponibles son 2015-2023, ingrese la temporada de la cual quiere ver su ranking: "))
 
-    if temporada == 2020:
-        for i in temporadas["2015-2019"]["1er Año"]:
-            print(temporadas[temporada][i][0]) #EQUIPOS
-            print(temporadas[temporada][i][0]) #PUNTOS
+    print(f"Temporada {temporada} - Posiciones y puntos")
+    if temporada <= 2019:
+        for i in range(len(temporadas[temporada])):
+            print(f"{temporadas[temporada][i][0]}: {temporadas[temporada][i][1]}") #EQUIPOS
 
-def listado_equipos(informacion_api:list) -> None:
-    print("Listado de equipos de la Liga Profesional correspondiente temporada 2023")
-    for i in informacion_api[1]:
-        print(informacion_api[1][i])
-    equipo = input("Ingrese el nombre de un equipo para ver su plantel: ")
-    while equipo not in informacion_api[1]:
-        equipo = input("Equipo no encontrado, ingrese el nombre de otro equipo para ver su plantel: ")
+    elif temporada == 2020:
+        for grupo in informacion_api[0][2020]:
+            print(grupo)
+            for i in range (len(informacion_api[0][2020][grupo])):
+                equipo: str = informacion_api[0][2020][grupo][i][0]
+                puntos: str = informacion_api[0][2020][grupo][i][1]
+                print(f"{i+1} {equipo} - {puntos} puntos.")
 
-    print("plantel")
+    elif temporada >= 2021:
+        for fase in informacion_api[0][2023]:
+            print(fase)
+            for i in range (len(informacion_api[0][2023][fase])):
+                equipo: str = informacion_api[0][2023][fase][i][0]
+                puntos: str = informacion_api[0][2023][fase][i][1]
+                print(f"{i+1} {equipo} - {puntos} puntos.")
+
+def listado_equipos(informacion_api: list) -> None:
+    print("Equipos - Liga Profesional Argentina, temporada 2023")
+    for fase in informacion_api[0][2023]:
+        for i in range(len(informacion_api[0][2023][fase])):
+            print(informacion_api[0][2023][fase][i][0])
+    
+    equipo: str = input("Ingrese el nombre de un equipo para ver su plantel ").capitalize()
+    while validacion_temporada_2023(equipo, informacion_api[0][2023]):
+        equipo: str = input("El equipo que ingresó no es válido o no forma parte de la temporada 2023. Inténtelo nuevamente: ").capitalize()
+
+    for jugador in range(len(informacion_api[1][equipo]["plantel"])):
+        print(informacion_api[1][equipo]["plantel"][jugador])
 
 def definir_partidos(equipo:str,fixtures:dict)->dict:
     partidos = {}
@@ -670,7 +701,7 @@ def opt_menu() -> None:
 def print_menu() -> None:
     print(f"-"*20)
     print(f"Esta es la interfaz, seleccione lo que desea hacer")
-    print(f"1. Ver el listado de equipos")
+    print(f"1. Ver el plantel completo de un equipo")
     print(f"2. Ver la tabla de posiciones de la Liga profesional")
     print(f"3. Ver informacion de un equipo")
     print(f"4. Ver grafica de goles por equipo")
