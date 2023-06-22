@@ -1,4 +1,5 @@
-from informacion_api import informacion_api
+from informacion_api import informacion_api # --> RETURN DE LA FUNCIÓN diccionario_api()
+
 from passlib.hash import pbkdf2_sha256
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
@@ -16,7 +17,7 @@ def diccionario_api(API: dict) -> list:
          del programa en una lista de diccionarios.
     POST: Un valor de retorno list. Devuelve una lista con los tres diccionarios creados.
     """
-    imprimir_carga(0)
+    imprimir_carga(1, 0)
 
     temporadas: dict = diccionario_temporadas(API)
     equipos: dict = diccionario_equipos(API, temporadas)
@@ -24,25 +25,43 @@ def diccionario_api(API: dict) -> list:
 
     informacion_api: list = [temporadas, equipos, fixtures]
 
-    imprimir_carga(4)
+    imprimir_carga(1, 10)
     time.sleep(0.5)
 
     return(informacion_api)
 
-def imprimir_carga(tiempo: int) -> None:
+def imprimir_carga(version: int, tiempo: int) -> None:
     """
     PRE: Un parámetro int. Recibe el valor de un número entero.
     POST: Ningún valor de retorno. Imprime la cadena que se encuentra en la posición del entero ingresado.
     """
     CARGA: list = [
-    "0% ▯ ▯ ▯ ▯ ▯ ▯ ▯ ▯ ▯ ▯ 100%", "33% ▮ ▮ ▮ ▯ ▯ ▯ ▯ ▯ ▯ ▯ 100%",
-    "66% ▮ ▮ ▮ ▮ ▮ ▮ ▯ ▯ ▯ ▯ 100%", "99% ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▯ 100%",
-    "100% ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ 100%", "Cargando..."
+    "0% ▯ ▯ ▯ ▯ ▯ ▯ ▯ ▯ ▯ ▯ 100%", "13% ▮ ▯ ▯ ▯ ▯ ▯ ▯ ▯ ▯ ▯ 100%", "21% ▮ ▮ ▯ ▯ ▯ ▯ ▯ ▯ ▯ ▯ 100%",
+    "33% ▮ ▮ ▮ ▯ ▯ ▯ ▯ ▯ ▯ ▯ 100%", "40% ▮ ▮ ▮ ▮ ▯ ▯ ▯ ▯ ▯ ▯ 100%", "57% ▮ ▮ ▮ ▮ ▮ ▯ ▯ ▯ ▯ ▯ 100%",
+    "66% ▮ ▮ ▮ ▮ ▮ ▮ ▯ ▯ ▯ ▯ 100%", "71% ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▯ ▯ ▯ 100%", "80% ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▯ ▯ 100%",
+    "99% ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▯ 100%", "100% ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ ▮ 100%"
     ]
 
-    os.system("cls")
-    print(CARGA[5])
-    print(CARGA[tiempo])
+    if (version == 1):
+        os.system("cls")
+        print("Cargando...")
+        print(CARGA[tiempo])
+
+    elif (version == 2):
+        for i in CARGA:
+            os.system("cls")
+            print("  \x1B[3mCargar dinero a la cuenta\x1B[0m")
+            print(f"-"*30)
+            print("Realizando transacción. Aguarde un momento...")
+            print(i)
+            time.sleep(0.1)
+    
+    else:
+        for i in CARGA:
+            imprimir_leyenda_apuestas()
+            print("Calculando resultados...")
+            print(i)
+            time.sleep(0.1)
 
     return(None)
 
@@ -72,7 +91,7 @@ def diccionario_temporadas(API: dict) -> dict:
                 }
 
     temporadas: dict = informacion_posiciones(API, temporadas)
-    imprimir_carga(1)
+    imprimir_carga(1, 3)
 
     return(temporadas)
 
@@ -144,7 +163,7 @@ def diccionario_equipos(API: dict, temporadas: dict) -> dict:
                     equipos[nombre_equipo]["plantel"] = plantel
                     equipos[nombre_equipo]["estadisticas"] = estadistica
     
-    imprimir_carga(2)
+    imprimir_carga(1, 6)
 
     return(equipos)
 
@@ -177,7 +196,7 @@ def diccionario_fixtures(API: dict) -> dict:
                 "visitante": visitante,
                 }
 
-    imprimir_carga(3)
+    imprimir_carga(1, 9)
 
     return(fixtures)
 
@@ -195,7 +214,10 @@ def informacion_planteles(API: dict, code: str) -> list:
     for i in range (len(response)):
 
         nombre_completo: str = response[i]["player"]["firstname"] + " " + response[i]["player"]["lastname"] 
-        posicion: str = traducir_dato((response[i]["statistics"][0]["games"]["position"]).lower())
+        posicion: str = traducir_dato((str(response[i]["statistics"][0]["games"]["position"])).lower())
+
+        if (posicion == "None"):
+            posicion: str = "Sin dato"
 
         if ((response[i]["statistics"][0]["games"]["captain"]) == True):
             dato_completo: str = f"{nombre_completo} ({posicion}), CAPITÁN"
@@ -301,7 +323,7 @@ def informacion_predicciones(API: dict, code: str) -> str:
     """
     response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["predicciones"] + code, headers=API["HEADERS"])).json()).get("response")
 
-    prediccion: str = response[0]["predictions"]["winner"]["name"]
+    prediccion: str = "Platense"#response[0]["predictions"]["winner"]["name"]
 
     return(prediccion)
 
@@ -422,9 +444,13 @@ def mayor_ganador (usuarios_diccionario: dict, transacciones_listado: list) -> N
     POST: Ningún valor de retorno. Imprime una leyenda con el nombre del usuario y la cantidad de
           veces ganadas.
     """
+    os.system("cls")
     cantidad_apuestas = {} # usuario: cantidad
     mayor_ganador = ""
     mayor_veces_ganado = 0
+
+    print("       \x1B[3mMayor ganador\x1B[0m")
+    print(f"-"*30)
 
     for i in range(len(transacciones_listado)):
         if transacciones_listado[i][2] == "Gana":
@@ -437,22 +463,36 @@ def mayor_ganador (usuarios_diccionario: dict, transacciones_listado: list) -> N
             mayor_veces_ganado = cantidad_apuestas[i]
             mayor_ganador = i
 
-    print(f"El usuario que más veces ganó es {usuarios_diccionario[mayor_ganador][0]} con un total de {mayor_veces_ganado} de veces.")
+    print("El usuario que más veces ganó es")
+    print(f"\x1B[3m{usuarios_diccionario[mayor_ganador][0]}\x1B[0m con un total de {mayor_veces_ganado} de veces.")
     
+    print(f"-"*30)
+
+    enter: str = input("\x1B[3mPresione Enter para volver al Menú.\x1B[0m")
+
 def mayor_apostador (usuarios_diccionario: dict) -> None:
     """
     PRE: Un parámetro dict. Itera el diccioanrio_usuarios y con un contador define el usuario que más veces apostó.
     POST: Ningún valor de retorno. Imprime una leyenda con el nombre del usuario y la cantidad de veces apostadas.
     """
+    os.system("cls")
     mayor_apostador = ""
     mayor_cantidad_apostada = float(0)
+
+    print("       \x1B[3mMayor apostador\x1B[0m")
+    print(f"-"*30)
 
     for i in usuarios_diccionario:
         if usuarios_diccionario[i][2] >= mayor_cantidad_apostada:
             mayor_cantidad_apostada = usuarios_diccionario[i][2]
             mayor_apostador = usuarios_diccionario[i][0]
 
-    print(f"El usuario que más dinero apostó es {mayor_apostador} con un total de {mayor_cantidad_apostada}.")
+    print("El usuario que más dinero apostó")
+    print(f"es \x1B[3m{mayor_apostador}\x1B[0m con un total de ${mayor_cantidad_apostada}.")
+
+    print(f"-"*30)
+
+    enter: str = input("\x1B[3mPresione Enter para volver al Menú.\x1B[0m")
 
 def cargar_dinero (email: str, usuarios_diccionario: dict, transacciones_listado: list) -> None:
     """
@@ -460,27 +500,43 @@ def cargar_dinero (email: str, usuarios_diccionario: dict, transacciones_listado
          para depositar en su cuenta. Suma dicho monto al ya existente en el diccionario de usuarios.
     POST: Ningún valor de retorno. Notifica al usuario de la acción.
     """
-    print("\x1B[3mCargar dinero a la cuenta\x1B[0m")
+    os.system("cls")
+    print("         \x1B[3mCargar dinero\x1B[0m")
+    print(f"-"*30)
 
     dinero = float(input("Ingrese la cantidad de dinero que quiere ingresar a su cuenta: "))
     while dinero <= 0: dinero = float(input("Monto inválido. Ingrese la cantidad de dinero que quiere ingresar en su cuenta: "))
     
     usuarios_diccionario[email][4] += dinero
     fecha = fecha_actual()
-
     transacciones_listado.append([email,fecha,"Deposita",dinero])
+
+    imprimir_carga(2, 0)
+    print("\n")
+    print("Transacción efectuada correctamente.")
     print(f"Dinero disponible: {usuarios_diccionario[email][4]}")
+    print(f"-"*30)
+
+    enter: str = input("\x1B[3mPresione Enter para volver al Menú.\x1B[0m")
 
 def grafica_goles (informacion_api: list) -> None:
     """
     PRE: Un parámetro list. Solicita al usuario elegir un equipo de la temporada 2023.
     POST: Ningún valor de retorno. Muestra un gráfico de barras los goles por minuto que realizó el equipo ingresado.
     """
-    print("\x1B[3mEstadisticas - Goles por minutos\x1B[0m")
-    equipo: str = input("Ingrese el equipo para ver sus estadísticas: ").title()
+    os.system("cls")
+    print("    \x1B[3mEstadísticas - Goles por Minuto\x1B[0m")
+    print(f"-"*40)
+    equipo: str = input("Ingrese un equipo para ver sus estadísticas: ").title()
 
-    while validacion_temporada_2023(equipo, informacion_api[0][2023]):
-        equipo: str = input("El equipo que ingresó no es válido o no forma parte de la temporada 2023. Inténtelo nuevamente: ").title()
+    while equipo not in list(informacion_api[1].keys()):
+        print(f"El equipo ingresado, '{equipo}', es inválido o no forma parte de la Temporada 2023.")
+        equipo: str = input("Inténtelo de nuevo: ").title()
+
+    print("\n")
+    print(f"Estadísticas de {equipo} de goles por minuto:")
+
+    print(f"-"*40)
 
     estadisticas = informacion_api[1][equipo]["estadisticas"]
     minutos: list = []
@@ -498,20 +554,31 @@ def grafica_goles (informacion_api: list) -> None:
     plt.axis('off')
     plt.show()
 
+    enter: str = input("\x1B[3mPresione Enter para volver al Menú.\x1B[0m")
+
 def informacion_equipo(informacion_api: list) -> None:
     """
     PRE: Un parámetro list. Solicita al usuario elegir un equipo de la temporada 2023.
     POST: Ningún valor de retorno. Imprime datos del equipo seleccionado y muestra dos imagenes.
     """
+    os.system("cls")
     equipos = (informacion_api[1])
 
     print("\x1B[3mCuriosidades de equipos\x1B[0m")
+    print(f"-"*20)
 
-    equipo = input("Ingrese el nombre de un equipo para ver su información: ")
-    while equipo not in list(informacion_api[1].keys()):
-        equipo = input("Equipo no encontrado, ingrese el nombre de otro equipo para ver su informacion: ")
+    equipo: str = input("Ingrese el nombre de un equipo para ver su información: ").title()
 
-    print(f'El estadio de {equipo} fue bautizado como {equipos[equipo]["estadio"]}. El mismo se encuentra en {equipos[equipo]["direccion"]}, {equipos[equipo]["ciudad"]}. Tiene una capacidad total de {equipos[equipo]["capacidad"]} espectadores, y su superficie está hecha de {equipos[equipo]["superficie"]}.')
+    while equipo not in informacion_api[1]:
+        print(f"El equipo que ingresó, '{equipo}', no es válido o no forma parte de la Liga Profesional Argentina.") 
+        equipo: str = input("Inténtelo nuevamente: ").title()
+
+    print(f"-"*50)
+    print(f'El estadio de {equipo}, bautizado como "{equipos[equipo]["estadio"]}",')
+    print(f'se encuentra en {equipos[equipo]["ciudad"]}')
+    print(f'({equipos[equipo]["direccion"]}).')
+    print(f'Tiene una capacidad total de {equipos[equipo]["capacidad"]} espectadores,')
+    print(f'y su superficie está hecha de {equipos[equipo]["superficie"]}.')
 
     estadio = requests.get(url = equipos[equipo]["foto"])
 
@@ -522,7 +589,8 @@ def informacion_equipo(informacion_api: list) -> None:
     plt.axis('off')
     plt.show()
 
-    print(f"Y su escudo, es el siguiente.")
+    print("\n")
+    print(f"Y su escudo, es el que ahora se muestra en pantalla.")
 
     escudo = requests.get(url = equipos[equipo]["escudo"])
 
@@ -533,52 +601,66 @@ def informacion_equipo(informacion_api: list) -> None:
     plt.axis('off')
     plt.show()
 
+    print(f"-"*50)
+    enter: str = input("\x1B[3mPresione Enter para volver al Menú.\x1B[0m")
+
 def tabla_posiciones(informacion_api: list) -> None:
     """
     PRE: Un parámetro list. Solicita al usuario ingresar una temporada de la liga.
     POST: Ningún valor de retorno. Imprime la tabla de posiciones del año seleccionado.
     """
+    os.system("cls")
     temporadas = informacion_api[0]
 
-    print("\x1B[3mTabla de posiciones de la Liga Profesional\x1B[0m")
-    temporada = int(input("Ingrese la temporada de la cual quiere ver su ranking: "))
-    while temporada < 2015 or temporada > 2023:
-        temporada = int(input("Las temporadas disponibles son 2015-2023. Ingrese la temporada de la cual quiere ver su ranking: "))
+    print("   \x1B[3mTabla de posiciones de la Liga Profesional\x1B[0m")
+    print(f"-"*50)
+    temporada: str = input("Ingrese la temporada para consultar su ranking: ")
 
-    print("\n")
-    print(f"Temporada {temporada} - Posiciones y puntos")
+    while int(temporada) < 2015 or int(temporada) > 2023:
+        print("\x1B[3mLas temporadas disponibles son entre 2015 y 2023.\x1B[0m")
+        temporada: str = input("Ingrese la temporada de la cual quiere ver su ranking: ")
 
-    if temporada <= 2019:
-        for i in range(len(temporadas[temporada])):
-            print(f"{i+1}) {temporadas[temporada][i][0]} - {temporadas[temporada][i][1]} puntos.")
+    os.system("cls")
+    print(f"\x1B[3mRanking Temporada {temporada} - Posiciones y Puntos\x1B[0m")
+    print(f"-"*45)
 
-    elif temporada == 2020:
+    if int(temporada) <= 2019:
+        for i in range(len(temporadas[int(temporada)])):
+            print(f"{i+1}. {temporadas[int(temporada)][i][0]} - {temporadas[int(temporada)][i][1]} puntos.")
+        print(f"-"*45)
+
+    elif int(temporada) == 2020:
         for grupo in informacion_api[0][2020]:
-            print("\n")
-            print(grupo)
+            print(f"\x1B[3m{grupo}\x1B[0m")
+            print(f"-"*45)
             for i in range (len(informacion_api[0][2020][grupo])):
                 equipo: str = informacion_api[0][2020][grupo][i][0]
                 puntos: str = informacion_api[0][2020][grupo][i][1]
-                print(f"{i+1}) {equipo} - {puntos} puntos.")
+                print(f"{i+1}. {equipo} - {puntos} puntos.")
+            print(f"-"*45)
 
-    elif temporada >= 2021:
+    elif int(temporada) >= 2021:
         for fase in informacion_api[0][2023]:
-            print("\n")
-            print(fase)
+            print(f"                \x1B[3m{fase}\x1B[0m")
+            print(f"-"*45)
             for i in range (len(informacion_api[0][2023][fase])):
                 equipo: str = informacion_api[0][2023][fase][i][0]
                 puntos: str = informacion_api[0][2023][fase][i][1]
-                print(f"{i+1}) {equipo} - {puntos} puntos.")
+                print(f"{i+1}. {equipo} - {puntos} puntos.")
+            print(f"-"*45)
+    
+    enter: str = input("\x1B[3mPresione Enter para volver al Menú.\x1B[0m")
 
 def listado_equipos(informacion_api: list) -> None:
     """
     PRE: Un parámetro list. Imprime la lista de equipos de la temporada 2023 y solicita al usuario elegir un equipo.
     POST: Ningún valor de retorno. Imprime el plantel del equipo seleccionado.
     """
+    os.system("cls")
     equipos: list = []
 
-    print("\x1B[3mEquipos - Liga Profesional Argentina, temporada 2023\x1B[0m")
-    
+    print("    \x1B[3mEquipos - Liga Profesional Argentina, Temporada 2023\x1B[0m")
+    print(f"-"*60)
     for fase in informacion_api[0][2023]:
         for i in range(len(informacion_api[0][2023][fase])):
             equipo: str = informacion_api[0][2023][fase][i][0]
@@ -586,15 +668,26 @@ def listado_equipos(informacion_api: list) -> None:
                 equipos.append(informacion_api[0][2023][fase][i][0])
     
     for i in range (len(equipos)):
-        print(equipos[i])
+        print(f"- {equipos[i]}")
     
+    print(f"-"*60)
     equipo: str = input("Ingrese el nombre de un equipo para ver su plantel: ").title()
 
     while validacion_temporada_2023(equipo, informacion_api[0][2023]):
-        equipo: str = input("El equipo que ingresó no es válido o no forma parte de la temporada 2023. Inténtelo nuevamente: ").title()
+        print(f"El equipo que ingresó, '{equipo}', no es válido o no forma parte de la Temporada 2023.") 
+        equipo: str = input("Inténtelo nuevamente: ").title()
+
+    os.system("cls")
+
+    print(f"    \x1B[3mPlantel de {equipo} - Temporada 2023\x1B[0m")
+    print(f"-"*40)
 
     for jugador in range(len(informacion_api[1][equipo]["plantel"])):
-        print(informacion_api[1][equipo]["plantel"][jugador])
+        dato_jugador: str = informacion_api[1][equipo]["plantel"][jugador]
+        print(f"- {dato_jugador}")
+    print(f"-"*40)
+
+    enter: str = input("\x1B[3mPresione Enter para volver al Menú.\x1B[0m")
 
 def definir_partidos(equipo: str, fixtures: dict) -> dict:
     """
@@ -629,11 +722,14 @@ def mostrar_fixture(equipo: str, fixture: dict) -> dict:
          ingresado y solicita al usuario seleccionar uno de esos partidos.
     POST: Un valor de retorno dict. Devuelve la información del partido elegido.
     """
+    imprimir_leyenda_apuestas()
+
     partidos_a_alegir = (definir_partidos(equipo,fixture)).items()
     indice = 0
 
     if len(partidos_a_alegir)> 0:
-        print("| "+"Local"+" "*30+"|"+"Vvisitante"+" "*26+"|"+"Fecha"+" "*3+"|")
+        print("   |"+"Local"+"|"+" "*30+"|"+"Visitante"+"|"+" "*25+"|"+"Fecha"+"|"+" "*2)
+        print(f"-"*88)
 
         for partido in partidos_a_alegir:
             indice=indice+1
@@ -645,10 +741,14 @@ def mostrar_fixture(equipo: str, fixture: dict) -> dict:
             #AGREGO ESPACIADO PARA EL CUADRO
             partido_local = encuadrado(partido_local)
             partido_visitante = encuadrado(partido_visitante)
-            print(f"|{indice}| {partido_local}|{partido_visitante}|{partido_fecha}|")
-            
+            if (indice <= 9):
+                print(f"|0{indice}| {partido_local}|{partido_visitante}|{partido_fecha}|")
+            else:
+                print(f"|{indice}| {partido_local}|{partido_visitante}|{partido_fecha}|")
         
-        partido_elegido = int(input("Elija un partido indicando su número \n"))
+        print(f"-"*88)
+        
+        partido_elegido = int(input("Ingrese el número correspondiente al partido por el que desea apostar: "))
         partido_valido = False
 
         #Validacion
@@ -660,7 +760,8 @@ def mostrar_fixture(equipo: str, fixture: dict) -> dict:
                 continue
 
             else:
-                partido_elegido = int(input("Por favor, elija un partido de la lista \n"))
+                print(f"El término que ingresó, '{partido_elegido}', no es válido.")
+                partido_elegido = int(input("Inténtelo nuevamene: "))
                 
     #En caso de que el equipo elegido no tenga partidos a jugar, devuelve un diccionario vacio
     else:
@@ -674,14 +775,17 @@ def validar_apuesta_lv() -> str:
     PRE: Ningún parámetro. Solicita al usuario ingrese su resultado deseado del partido.
     POST: Un valor de retorno str. Devuelve el valor del tipo de la apuesta según corresponda.
     """
-    lov = input("Ingrese la opción a la que apostara Ganador(L)/Empate/Ganador(V): ")
+
+    lov = input("Ingrese la opción por la que apostará. Ganador(L) / Empate / Ganador(V): ")
+
     validado = False
     
     while validado is False:
         lov = lov.upper()
 
-        if lov != "GANADOR(L)" and lov != "EMPATE" and lov != "GANADOR(V)": 
-            lov = input("El termino ingresado no es correcto, Ganador(L)/Empate/Ganador(V)")
+        if lov != "GANADOR(L)" and lov != "EMPATE" and lov != "GANADOR(V)":
+            print(f"El término que ingresó, '{lov}', no es válido.")
+            lov = input("Inténtelo nuevamente. Ganador(L) / Empate / Ganador(V): ")
 
         else:
             validado = True
@@ -703,40 +807,59 @@ def apuesta_dinero(dinero_disponible: int) -> int:
          saldo insuficiente.
     POST: Un valor de retorno int. Devuelve la cantidad de dinero apostado por el usuario.
     """
-    #FALTA AGREGAR LA FUNCION QUE AGREGA DINERO EN LA CUENTA
-    print(f"Actualmente tiene {dinero_disponible}$ en la cuenta.")
-    cantidad_apostada = int(input("Ingrese la cantidad de dinero a apostar \n"))
-    apuesta_check = False
+    imprimir_leyenda_apuestas()
     
+    print(f"Actualmente tiene ${dinero_disponible} en la cuenta.")
+    cantidad_apostada = int(input("Ingrese la cantidad de dinero que quiere apostar: "))
+    apuesta_check = False
+
+    imprimir_leyenda_apuestas()
+
     while apuesta_check is False:
         if cantidad_apostada > dinero_disponible:
             
-            print("La cantidad de dinero que quieres apostar no se encuentra disponible en tu cuenta.")
-            print(f"Actualmente tiene {dinero_disponible}$ en la cuenta.")
+            print("La cantidad de dinero que quiere apostar no se encuentra disponible en su cuenta.")
+            print(f"Actualmente tiene ${dinero_disponible} en la cuenta.")
+            print("\n")
+            print("¿Qué desea hacer?")
             print("1) Cambiar la cantidad apostada")
-            print("2) Cancelar la operacion")
-            respuesta = input("¿Qué curso de acción desea tomar?")
+            print("2) Cancelar la operación")
+            respuesta = input("Ingrese el número correspondiente a la acción que quiere realizar: ")
             
+            imprimir_leyenda_apuestas()
+
             if respuesta == "1":
                cantidad_apostada = int(input("Ingrese la nueva cantidad a apostar: "))
             
             elif respuesta == "2":
                 cantidad_apostada = -1
-                apuesta_check = True         
+                apuesta_check = True       
         else:
             apuesta_check = True
             
     return(cantidad_apostada)
-        
+
+def imprimir_leyenda_apuestas() -> None:
+    """
+    PRE: Ningún parámetro. Imprime la leyenda correspondiente al menú de apuestas.
+    POST: Ningún valor de retorno.
+    """
+
+    os.system("cls")
+    print("                              \x1B[3mRealizar apuesta\x1B[0m")
+    print(f"-"*88)
+
 def definir_apuesta(datos_del_partido, dinero_en_cuenta: float) -> list:
     """
     PRE: 
     POST: 
     """
-    #ARGUMENTOS A DEFINIR, FUNCION INCOMPLETA
+    imprimir_leyenda_apuestas()
     local = datos_del_partido[1]["local"]
     visitante = datos_del_partido[1]["visitante"] 
+
     print(f"{local}(L) - {visitante}(V)")
+    
     local_o_visitante =  validar_apuesta_lv()
    
     cantidad_apostada = apuesta_dinero(dinero_en_cuenta)
@@ -771,15 +894,15 @@ def pago_apuesta(resultado_apostado: int, dinero_apostado: int, prediccion: int,
         
     return (balance_final,tipo) 
 
-def predicciones(partido: list, api: dict) -> int:
+def predicciones(partido: list, API: dict) -> int:
     """
     PRE: Un parámetro list. Un parámetro dict. Itera el diccionario de partidos y solicita a la API el resultado.
     POST: Un valor de retorno int. Devuelve el valor de la predicción según corresponda.
     """
-    id = partido[0]
+    code = partido[0]
     local = partido[1]["local"].upper()
     visitante = partido[1]["visitante"].upper()
-    prediccion_str = informacion_predicciones(api, id).upper()
+    prediccion_str = informacion_predicciones(API, code).upper()
 
     if prediccion_str == local:
         prediccion_int = 1
@@ -795,11 +918,11 @@ def resultados_apuesta(apuesta, partido, API: dict) -> tuple:
     POST: Un valor de retrno tuple. Devuelve la cantidad de dinero que ganó/perdió el usuario y el tipo de acción.
     """
     resultado_apostado,dinero_apostado = apuesta
-    prediccion = predicciones(partido,api)
+    prediccion = predicciones(partido, API)
     ganador = random.randint(1,3)
     ratio_pago = random.randint(1,4)
     
-    return(pago_apuesta(resultado_apostado,dinero_apostado,prediccion,ganador,ratio_pago))
+    return(pago_apuesta(resultado_apostado, dinero_apostado, prediccion, ganador, ratio_pago))
  
 def printear_equipos_disponibles(equipos: dict) -> None:
     """
@@ -817,9 +940,12 @@ def validar_equipos(lista_equipos: dict) -> str:
     PRE: Un parámetro dict. Verifica que el equipo ingresado se encuentre en la lista disponible.
     POST: Un valor de retorno str. Devuelve el equipo ingresado.
     """
-    printear_equipos_disponibles(lista_equipos)
+    imprimir_leyenda_apuestas()
 
-    equipo: str = input("Ingrese el nombre del equipo \n")
+    printear_equipos_disponibles(lista_equipos)
+    print(f"-"*88)
+
+    equipo: str = input("Ingrese el nombre del equipo por el que quiere apostar: ")
     valido: bool = False
 
     while valido is False:
@@ -833,8 +959,8 @@ def validar_equipos(lista_equipos: dict) -> str:
                 continue
             
         if (valido is False):
-            printear_equipos_disponibles(lista_equipos)
-            equipo = input("Equipo invalido. Ingrese un equipo que se encuentre en la lista \n")
+            print(f"El equipo que ingresó, '{equipo}', no es válido o no participa en la Liga Profesional Argentina.")
+            equipo: str = input("Inténtelo nuevamente: ")
             
     return(equipo)
 
@@ -844,11 +970,23 @@ def anunciar_resultado(dinero: int) -> None:
     POST: Ningún valor de retorno. Anuncia al usuario si perdió o ganó, y la cantidad de dinero que se le
           suma/resta en consecuencia.
     """
+    imprimir_carga(3, 0)
+
+    print("\n")
+
     if dinero < 0:
-        print(f"Has perdido {-dinero}$")
+        print("Malas noticias...")
+        print(f"Has perdido ${-dinero}")
 
     elif dinero > 0:
-        print(f"Has ganado {dinero}$")
+        print("¡Felicidades!")
+        print(f"Has ganado ${dinero}")
+    
+    print("\n")
+
+    print(f"-"*88)
+
+    enter: str = input("\x1B[3mPresione Enter para volver al Menú.\x1B[0m")
 
 def menu_apuesta(mail: str, dict_usuarios: dict, lista_transacciones: list, dict_equipos: dict, fixture: dict, API: dict) -> None:
     """
@@ -867,29 +1005,30 @@ def menu_apuesta(mail: str, dict_usuarios: dict, lista_transacciones: list, dict
 
         else:
             print("No existen partidos del equipo elegido. Por favor, seleccione otro.")
+            print("Volviendo al listado...")
+            time.sleep(3.5)
     
     apuesta = definir_apuesta(partido, dinero_en_cuenta)
 
     if (apuesta[1] != -1):
-        dinero_a_modificar,tipo = resultados_apuesta(apuesta,partido,api)
-        lista_transacciones.append([mail,fecha_actual(),tipo,dinero_a_modificar])
+        dinero_a_modificar,tipo = resultados_apuesta(apuesta, partido, API)
+        lista_transacciones.append([mail, fecha_actual(), tipo, dinero_a_modificar])
 
         dict_usuarios[mail][4] += dinero_a_modificar
 
         anunciar_resultado(dinero_a_modificar)
 
-def opt_menu() -> str:
+def opcion_menu() -> str:
     """
     PRE: Ningún parámetro. Valida que el termino ingresado forma parte del intervalo definido.
     POST: Un valor de retorno str. Devuelve el termino.
     """
-    opt: str = input("Ingrese el número correspondiente a la opción que quiera realizar: ")
+    opcion: str = input("Ingrese el número correspondiente a la opción que quiera realizar: ")
 
-    while opt not in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]: opt: str = (f"El término que ingresó, '{opt}', no es válido. Inténtelo nuevamente: ")
+    while opcion not in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]:
+        opcion: str = (f"El término que ingresó, '{opcion}', no es válido. Inténtelo nuevamente: ")
 
-    print(f"-"*20)
-
-    return(opt)
+    return(opcion)
 
 def print_menu() -> None:
     """
@@ -897,17 +1036,17 @@ def print_menu() -> None:
     POST: Ningún valor de retorno. 
     """
     os.system("cls")
+    print("        MENÚ")
     print(f"-"*20)
-    print(f"Ingrese el número correspondiente a la acción que quiera realizar: ")
-    print(f"1. Consultar plantel")
-    print(f"2. Tabla de posiciones")
-    print(f"3. Curiosidades de equipos")
-    print(f"4. Estadística de goles 2023")
-    print(f"5. Cargar dinero a la cuenta")
-    print(f"6. Usuario que más dinero apostó")
-    print(f"7. Usuario que más veces ganó")
-    print(f"8. Realizar apuesta")
-    print(f"9. Cerrar sesión")
+    print("1. Consultar plantel")
+    print("2. Tabla de posiciones")
+    print("3. Curiosidades de equipos")
+    print("4. Estadística de goles 2023")
+    print("5. Cargar dinero a la cuenta")
+    print("6. Usuario que más dinero apostó")
+    print("7. Usuario que más veces ganó")
+    print("8. Realizar apuesta")
+    print("9. Cerrar sesión")
     print(f"-"*20)
 
 def registrarse(usuarios_diccionario: dict) -> None:
@@ -917,6 +1056,7 @@ def registrarse(usuarios_diccionario: dict) -> None:
           vuelve al menú de inicio de sesión.
     """
     os.system("cls")
+    print("    REGISTRARSE")
     print(f"-"*20)
     print(f"Ingrese sus datos para crear una nueva cuenta.")
 
@@ -929,18 +1069,24 @@ def registrarse(usuarios_diccionario: dict) -> None:
 
         if email == i:
             print(f"-"*20)
-            print("Usuario ya existente. Elija una opción para continuar: ")
+            print("\x1B[3mUsuario ya existente.\x1B[0m")
+            print("Volviendo al menú de incio...")
+            time.sleep(3.5)
 
             return(None)
 
         if "@" and ".com" not in email:
             print(f"-"*20)
-            print("Formato de email incorrecto. Elija una opción para continuar: ")
+            print("\x1B[3mFormato de email incorrecto.\x1B[0m")
+            print("Volviendo al menú de incio...")
+            time.sleep(3.5)
 
             return(None)
 
     print(f"-"*20)
-    print("Usuario creado exitosamente. Inicie sesión para continuar.")
+    print("\x1B[3mUsuario creado exitosamente.\x1B[0m")
+    print("Será redirigido al menú de inicio. Inicie sesión para continuar.")
+    time.sleep(5.0)
 
     usuarios_diccionario[email] = [usuario, hash, float(0), 00000000, float(0)] 
 
@@ -951,22 +1097,25 @@ def iniciar_sesion(usuarios_diccionario: dict) -> str:
     POST: Un valor de retorno str. Devuelve el email ingresado o en blanco según corresponda.
     """
     os.system("cls")
+    print("  INICIO DE SESIÓN")
     print(f"-"*20)
-    print(f"Inicio de sesión")
-
     email: str = input("Email: ")
     contraseña: str = input("Contraseña: ")
 
     for i in usuarios_diccionario:
         if ((email == i) and (pbkdf2_sha256.verify(contraseña, usuarios_diccionario[email][1]))):
             print(f"-"*20)
+            print("\x1B[3mInicio de sesión exitoso.\x1B[0m")
             print(f"¡Bienvenido, {usuarios_diccionario[i][0]}!")
-            continuar: str = input("\x1B[3mPresione Enter para continuar.\x1B[0m")
+            #time.sleep(3.5)
             return (email)
 
     print(f"-"*20)
-    print("Combinación de usuario y contraseña incorrecta. Elija una opción para continuar: ")
+    print("\x1B[3mCombinación de usuario y contraseña incorrecta.\x1B[0m")
+    print("Volviendo al menú de incio...")
     email: str = ""
+
+    time.sleep(3.5)
 
     return (email)
 
@@ -975,9 +1124,10 @@ def opt_bienvenida() -> str:
     PRE: Ningún parámetro. Valida que el termino ingresado forma parte del intervalo definido.
     POST: Un valor de retorno str. Devuelve el termino.
     """
-    opt: str = input("Ingrese el número correspondiente a la opción que quiera realizar: ")
+    opt: str = input("Ingrese el número correspondiente a la acción que quiera realizar: ")
 
-    while opt not in ["1", "2", "3"]: opt: str = input(f"El término que ingresó, '{opt}', no es válido. Inténtelo nuevamente: ")
+    while opt not in ["1", "2", "3"]:
+        opt: str = input(f"El término que ingresó, '{opt}', no es válido. Inténtelo nuevamente: ")
 
     return(opt)
 
@@ -987,11 +1137,11 @@ def print_bienvenida() -> None:
     POST: Ningún valor de retorno.
     """
     os.system("cls")
-    print(f"Bienvenido")
+    print("   MENÚ DE INCIO")
     print(f"-"*20)
-    print(f"1) Iniciar sesion")
-    print(f"2) Registrarse")
-    print(f"3) Salir")
+    print("1) Iniciar sesión")
+    print("2) Registrarse")
+    print("3) Salir")
     print(f"-"*20)
 
 def escritura_usuarios(usuarios_diccionario: dict) -> None:
@@ -1105,7 +1255,7 @@ def main () -> None:
         while email != "":
 
             print_menu()
-            opcion: str = opt_menu()
+            opcion: str = opcion_menu()
 
             while opcion != "9":
 
@@ -1134,9 +1284,11 @@ def main () -> None:
                     menu_apuesta(email, usuarios_diccionario, transacciones_listado, informacion_api[1], informacion_api[2], API)
 
                 print_menu()
-                opcion = opt_menu()
+                opcion: str = opcion_menu()
 
             email: str = ""
+            print("Cerrando sesión. Aguarde un momento...")
+            time.sleep(2.5)
 
         print_bienvenida()
         opt: str = opt_bienvenida()
