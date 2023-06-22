@@ -1,5 +1,4 @@
-from informacion_api import informacion_api # --> RETURN DE LA FUNCIÓN diccionario_api()
-
+#from informacion_api import informacion_api # --> RETURN DE LA FUNCIÓN diccionario_api()
 from passlib.hash import pbkdf2_sha256
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
@@ -323,7 +322,7 @@ def informacion_predicciones(API: dict, code: str) -> str:
     """
     response: list = ((requests.request("GET", API["URL"] + API["ENDPOINTS"]["predicciones"] + code, headers=API["HEADERS"])).json()).get("response")
 
-    prediccion: str = "Platense"#response[0]["predictions"]["winner"]["name"]
+    prediccion: str = response[0]["predictions"]["winner"]["name"]
 
     return(prediccion)
 
@@ -1229,7 +1228,7 @@ def main () -> None:
             }
         }
     
-    #informacion_api: list = diccionario_api(API)
+    informacion_api: list = diccionario_api(API)
 
     usuarios_diccionario: dict = {}
     # email(id):[usuario, contraseña, cantidad_apostada, fecha_última_apuesta, dinero_disponible]
