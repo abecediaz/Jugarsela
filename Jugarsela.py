@@ -616,6 +616,7 @@ def definir_partidos(equipo: str, fixtures: dict) -> dict:
 
 def encuadrado(objeto: str) -> str:
     """
+    Funcion estetica que sirve para agregar el espacio necesario en el cuadro de los partidos (Ver mostrar_fixture)
     PRE: Un parámetro str. 
     POST: Un valor de retorno str. 
     """
@@ -625,6 +626,8 @@ def encuadrado(objeto: str) -> str:
 
 def mostrar_fixture(equipo: str, fixture: dict) -> dict:
     """
+    Muestra al usuario un cuadra con todos los partidos A JUGAR del equipo seleccionado, el usuario elige uno. Se valida la eleccion.
+    
     PRE: Un parámetro str. Un parámetro dict. Imprime el fixture de los partidos que va a jugar el equipo
          ingresado y solicita al usuario seleccionar uno de esos partidos.
     POST: Un valor de retorno dict. Devuelve la información del partido elegido.
@@ -647,20 +650,22 @@ def mostrar_fixture(equipo: str, fixture: dict) -> dict:
             print(f"|{indice}\t| {partido_local}|{partido_visitante}|{partido_fecha}|")
             
         
-        partido_elegido = int(input("Elija un partido indicando su número \n"))
+        partido_elegido = (input("Elija un partido indicando su número \n"))
         partido_valido = False
 
         #Validacion
         while partido_valido is False:
+            if partido_elegido.isnumeric():
+                partido_elegido = int(partido_elegido)
+                if partido_elegido <= len(partidos_a_alegir):
+                    partidos_a_alegir = list(partidos_a_alegir)
+                    partido_valido = True
+                    continue
 
-            if partido_elegido <= len(partidos_a_alegir):
-                partidos_a_alegir = list(partidos_a_alegir)
-                partido_valido = True
-                continue
-
+                else:
+                    partido_elegido = (input("Por favor, elija un partido de la lista \n"))
             else:
-                partido_elegido = int(input("Por favor, elija un partido de la lista \n"))
-                
+                partido_elegido = input("Debe ingresar el NUMERO del partido \n")
     #En caso de que el equipo elegido no tenga partidos a jugar, devuelve un diccionario vacio
     else:
         partido_elegido = 1
@@ -668,10 +673,10 @@ def mostrar_fixture(equipo: str, fixture: dict) -> dict:
         
     return(partidos_a_alegir[partido_elegido-1]) # El numero 1 es el 0 de la lista.
     
-def validar_apuesta_lv() -> str:
+def validar_apuesta_lv() -> int:
     """
     PRE: Ningún parámetro. Solicita al usuario ingrese su resultado deseado del partido.
-    POST: Un valor de retorno str. Devuelve el valor del tipo de la apuesta según corresponda.
+    POST: Un valor de retorno int. Devuelve el valor del tipo de la apuesta según corresponda.
     """
     lov = input("Ingrese la opción a la que apostara Ganador(L)/Empate/Ganador(V): ")
     validado = False
@@ -693,38 +698,60 @@ def validar_apuesta_lv() -> str:
 
             if lov == "GANADOR(V)":
                 apuesta = 3
-
+                
+    return apuesta
 def apuesta_dinero(dinero_disponible:int)->int:
+    """
+    Permite al usuario definir la cantidad de dinero a apostar. Permite al usuario cancelar la operacion en caso de no tener el monto deseado
+
+    Args:
+        dinero_disponible (int): Dinero en la cuenta del usuario
+
+    Returns:
+        int: Devuelve la cantidad de dinero apostada
+    """
     print(f"Actualmente tiene {dinero_disponible}$ en la cuenta")
-    cantidad_apostada = int(input("Ingrese la cantidad de dinero a apostar \n"))
+    
+    cantidad_apostada = (input("Ingrese la cantidad de dinero a apostar \n"))
     apuesta_check = False
     
     while apuesta_check is False:
-        if cantidad_apostada > dinero_disponible:
-            
-            print("La cantidad de dinero que quieres apostar no se encuentra disponible en tu cuenta.")
-            print(f"Actualmente tiene {dinero_disponible}$ en la cuenta.")
-            print("1) Cambiar la cantidad apostada")
-            print("2) Cancelar la operacion")
-            respuesta = input("¿Qué curso de acción desea tomar?")
-            
-            if respuesta == "1":
-               cantidad_apostada = int(input("Ingrese la nueva cantidad a apostar: "))
-            
-            elif respuesta == "2":
-                cantidad_apostada = -1
-                apuesta_check = True         
+        if cantidad_apostada.isnumeric():
+            cantidad_apostada = int(cantidad_apostada)
+            if cantidad_apostada > dinero_disponible:
+                
+                print("La cantidad de dinero que quieres apostar no se encuentra disponible en tu cuenta.")
+                print(f"Actualmente tiene {dinero_disponible}$ en la cuenta.")
+                print("1) Cambiar la cantidad apostada")
+                print("2) Cancelar la operacion")
+                respuesta = input("¿Qué curso de acción desea tomar?\n")
+                
+                if respuesta == "1":
+                    cantidad_apostada = (input("Ingrese la nueva cantidad a apostar: \n"))
+                
+                elif respuesta == "2":
+                    cantidad_apostada = -1
+                    apuesta_check = True
+                    continue      
+            else:
+                apuesta_check = True
+                continue
         else:
-            apuesta_check = True
+             cantidad_apostada = (input("La cantidad apostada debe ser un numero entero: \n"))
             
     return(cantidad_apostada)
         
-def definir_apuesta(datos_del_partido, dinero_en_cuenta: float) -> list:
+def definir_apuesta(datos_del_partido:dict, dinero_en_cuenta: float) -> list:
     """
-    PRE: 
-    POST: 
+    Define la apuesta, el usuario decide si apostar a visitante, local o empate y el monto a apostar
+
+    Args:
+        datos_del_partido (dict): datos del partido
+        dinero_en_cuenta (float): Dinero en la cuenta del usuario
+
+    Returns:
+        list: Devuelve una lista con [(resultado apostado),(monto apostado)]
     """
-    #ARGUMENTOS A DEFINIR, FUNCION INCOMPLETA
     local = datos_del_partido[1]["local"]
     visitante = datos_del_partido[1]["visitante"] 
     print(f"{local}(L) - {visitante}(V)")
@@ -738,9 +765,17 @@ def definir_apuesta(datos_del_partido, dinero_en_cuenta: float) -> list:
 
 def pago_apuesta(resultado_apostado: int, dinero_apostado: int, prediccion: int, resultado_final: int, ratio_pago: int) -> tuple:
     """
-    PRE: Cinco parámetros int. Calcula el monto a sumar/restar del dinero en cuenta del usuario según el resultado
-         de la apuesta.
-    POST: Un valor de retorno tuple. Devuelve el montó y el tipo de resultado (Gana/Pierde).
+    Define el pago de la apuesta del usuario dependiendo los argumentos de la funcion
+
+    Args:
+        resultado_apostado (int): resultado al cual aposto el usuario (1: Local, 2: Empate, 3:Visitante)
+        dinero_apostado (int): Cantidad de dinero apostada por el usuario
+        prediccion (int): Prediccion del ganador dada por la API
+        resultado_final (int): Resultado final del partido  (1: Local, 2: Empate, 3:Visitante) (simulado)
+        ratio_pago (int): Cantidad de dinero pagada por apuesta (Random entre 1 y 4 )
+
+    Returns:
+        tuple: Devuelve una tupla con Balance Final(puede ser positivo o negativo) y el tipo (Si perdio o gano) 
     """
     balance_final = 0
     tipo = ""
@@ -762,7 +797,16 @@ def pago_apuesta(resultado_apostado: int, dinero_apostado: int, prediccion: int,
         
     return (balance_final,tipo) 
 
-def predicciones(partido,api)->None:
+def predicciones(partido,api)->int:
+    """
+    Solicita la prediccion a la api y la transfarma en un valor int (1: Gana Local, 3: Gana visitante)
+    Args:
+        partido (_type_): Informacion del partido [0] = id del partido, [1] diccionario con data del partido
+        api (_type_): Indicaciones necesarias para llamar a la api
+
+    Returns:
+        int: Prediccion evaluada en numero entero
+    """
     id = partido[0]
     local = partido[1]["local"].upper()
     visitante = partido[1]["visitante"].upper()
@@ -773,8 +817,18 @@ def predicciones(partido,api)->None:
 
     elif prediccion_str == visitante:
         prediccion_int = 3
+    
+    return prediccion_int
 
 def anunciar_resultado(dinero:float,partido:dict,resultado_final:int)->None:
+    """
+    Muestra el resultado del partido y de la apuesta en la consola
+
+    Args:
+        dinero (float): La cantidad de dinero ganada/perdida
+        partido (dict): Informacion del partido (Sin jugar)
+        resultado_final (int): Ganador del partido (Simulado)
+    """
     local = partido[1]["local"]
     visitante = partido[1]["visitante"]
     print(f"-"*20)
@@ -795,7 +849,19 @@ def anunciar_resultado(dinero:float,partido:dict,resultado_final:int)->None:
     print(f"-"*20)    
     input("presione enter para continuar")
         
-def resultados_apuesta(apuesta,partido,api:dict):
+def resultados_apuesta(apuesta,partido,api:dict)->tuple:
+    """
+    Realiza la "simulacion" del partido, llama a la funcion pago_apuesta para definir el pago y el tipo y lo devuelve
+
+    Args:
+        apuesta (_type_): Tiene la informacion de la apuesta, el monto y el resultado apostado
+        partido (_type_): Tiene toda la informacion del partido (Ver dict de fixture)
+        api (dict): Tiene la informacion necesaria para hacer pedidos a la api
+
+    Returns:
+        tuple: Devuelve una tupla con el balance final y el tipo de transaccion(Perdida,ganancia)
+    """
+    
     resultado_apostado,dinero_apostado = apuesta
     prediccion = predicciones(partido,api)
     ganador = random.randint(1,3)
@@ -808,6 +874,12 @@ def resultados_apuesta(apuesta,partido,api:dict):
     return balance_y_tipo
 
 def printear_equipos_disponibles(equipos:dict)->None:
+    """
+    Muestra una lista de todos los equipos del torneo
+
+    Args:
+        equipos (dict): Diccionario con la informacion de los equipos, se utilizan sus keys.
+    """
     i = 0
 
     for equipo in equipos.keys():
@@ -844,8 +916,15 @@ def validar_equipos(lista_equipos: dict) -> str:
 
 def menu_apuesta(mail: str, dict_usuarios: dict, lista_transacciones: list, dict_equipos: dict, fixture: dict, API: dict) -> None:
     """
-    PRE: Un parámetro str. Cuatro parámetros dict. Un parámetro list.
-    POST: Ningún valor de retorno. 
+    Llama a las demas funciones de apuesta y guarda los resultados en las estructuras de datos que luego se guardaran en archivos.
+
+    Args:
+        mail (str): Mail del usuario.
+        dict_usuarios (dict): Estructura de datos con la informacion del usuario.
+        lista_transacciones (list): Lista con todas las trasacciones (Es donde se guardara si gana o pierde).
+        dict_equipos (dict): Diccionario con la informacion de todos los equipos.
+        fixture (dict): Diccionario con la informacion de todos los partidos.
+        API (dict): Intrucciones varias para llamar a la API.
     """
     dinero_en_cuenta: int = int(dict_usuarios[mail][4])
     is_partido_elegido: bool = False
@@ -859,11 +938,11 @@ def menu_apuesta(mail: str, dict_usuarios: dict, lista_transacciones: list, dict
 
         else:
             print("No existen partidos del equipo elegido. Por favor, seleccione otro.")
-    
+            input("Presione enter para continuar...")
     apuesta = definir_apuesta(partido, dinero_en_cuenta)
 
     if (apuesta[1] != -1):
-        dinero_a_modificar,tipo = resultados_apuesta(apuesta,partido,api)
+        dinero_a_modificar,tipo = resultados_apuesta(apuesta,partido,API)
         lista_transacciones.append([mail,fecha_actual(),tipo,dinero_a_modificar])
 
         dict_usuarios[mail][4] += dinero_a_modificar
